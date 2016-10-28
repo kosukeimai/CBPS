@@ -1,4 +1,4 @@
-# CBPS: Covariate Balancing Propensity Score
+# CBPS: Covariate Balancing Propensity Score [![Build Status](https://travis-ci.org/kosukeimai/cbps.svg?branch=master)](https://travis-ci.org/kosukeimai/cbps)
 
 Implements the covariate balancing propensity score (CBPS) proposed by
 [Imai and Ratkovic (2014)](DOI:10.1111/rssb.12027). The propensity
