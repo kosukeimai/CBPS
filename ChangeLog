@@ -1,0 +1,11 @@
+version date      description
+0.1     07/19/12  The first version on CRAN
+0.2     09/27/12  The second version.  Fixed a bug in the ATE CBPS.
+0.3  	01/18/13  The third version.  Updated the ATE variance estimate.
+0.4     03/30/13  Adds function for fitting marginal structural model.  Fixed standard error in cross-sectional case.
+0.5 	05/07/13  Adds function that handles three- and four-valued treatments.
+0.6 	06/05/13  Adds multiple binary treatment case, as well as extending plot and summary capabilities.
+0.7     07/24/13  MAJOR BUG FIX.  In versions 5 and 6, CBPS for the cross-sectional case interprets 1 as untreated and 0 as treated.  This has been fixed.
+0.9		08/07/14  Adds CBPSContinuous.  Major changes to interface for and backend of CBMSM.
+0.10	09/07/15  Adds nonparametric estimation.  Simplifies CBPS output.  Numeric treatments now interpreted as continuous, and factors are interpreted as multi-valued.  Improves interface for ATT.
+0.11	04/29/16  Adds Improved CBPS from Han et al through the baseline and diff arguments.
