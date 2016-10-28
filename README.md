@@ -1,7 +1,7 @@
 # CBPS: Covariate Balancing Propensity Score [![Build Status](https://travis-ci.org/kosukeimai/CBPS.svg?branch=master)](https://travis-ci.org/kosukeimai/CBPS)
 
 Implements the covariate balancing propensity score (CBPS) proposed by
-[Imai and Ratkovic (2014)](DOI:10.1111/rssb.12027). The propensity
+[Imai and Ratkovic (2014)]( https://doi.org/10.1111/rssb.12027). The propensity
 score is estimated such that it maximizes the resulting covariate
 balance as well as the prediction of treatment assignment. The method,
 therefore, avoids an iteration between model fitting and balance
