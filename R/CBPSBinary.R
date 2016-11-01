@@ -289,7 +289,7 @@ CBPS.2Treat<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterati
 
 	beta.opt<-opt1$par
 		
-	output<-list("coefficients"=beta.opt,"fitted.values"=probs.opt,"deviance"=deviance,"weights"=w.opt,
+	output<-list("coefficients"=matrix(beta.opt, ncol=1),"fitted.values"=probs.opt,"deviance"=deviance,"weights"=w.opt,
 				 "y"=treat,"x"=X,"converged"=opt1$conv,"J"=J.opt,"var"=vcov, 
 				 "mle.J"=ifelse(twostep, gmm.func(glm1$coef, invV = this.invV)$loss, gmm.loss(glm1$coef)))
 

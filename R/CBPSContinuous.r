@@ -22,19 +22,19 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 
 		##Generate g-bar, as in the paper.
 		gbar<-c(1/n*t(Xtilde)%*%(Ttilde-Xtilde%*%beta.curr)/sigmasq,
-				1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2) - 1/(2*sigmasq)),
-				w.curr.del)
+		        1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1),
+		        w.curr.del)
 				
 		##Generate the covariance matrix used in the GMM estimate.
 		if (is.null(invV))
 		{
 			Xtilde.1.1<-1/sigmasq*t(Xtilde)%*%(Xtilde)
-			Xtilde.1.2<-0*t(Xtilde)%*%n.identity.vec
+			Xtilde.1.2<-t(Xtilde)%*%n.identity.vec*0
 			Xtilde.1.3<-t(Xtilde)%*%(Xtilde)
-			Xtilde.2.2<-t(n.identity.vec)%*%n.identity.vec*(2*sigmasq^2)^(-1)
-			Xtilde.2.3<-t(Xtilde)%*%(-Xtilde%*%beta.curr/sigmasq)
+			Xtilde.2.2<-t(n.identity.vec)%*%n.identity.vec*2
+			Xtilde.2.3<-t(Xtilde)%*%(-Xtilde%*%beta.curr)*-2
 			Xtilde.3.3<-t(Xtilde)%*%sweep(Xtilde,MARGIN=1,pmin(as.vector(exp((Xtilde%*%beta.curr)^2/sigmasq + log(sigmasq + (Xtilde%*%beta.curr)^2))), 10^250),'*')
-						
+			
 			V<-rbind(1/n*cbind(Xtilde.1.1,Xtilde.1.2,Xtilde.1.3),
 					 1/n*cbind(t(Xtilde.1.2),Xtilde.2.2,t(Xtilde.2.3)),
 					 1/n*cbind(Xtilde.1.3,Xtilde.2.3,Xtilde.3.3))
@@ -51,7 +51,7 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 
 	  
 	  ##Loss function for balance constraints, returns the squared imbalance along each dimension.
-	  bal.loss<-function(params.curr){
+	  bal.func<-function(params.curr, invV=NULL){
 	  	beta.curr<-params.curr[-length(params.curr)]
 		  sigmasq<-exp(params.curr[length(params.curr)])
 		
@@ -60,70 +60,111 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 		  probs.curr<-pmax(log(probs.min),probs.curr)
 		
 		  w.curr<-Ttilde*exp(stabilizers - probs.curr)
+		  
+		  ##Generate the vector of mean imbalance by weights.
+		  w.curr.del<-1/n*t(Xtilde)%*%w.curr
+		  w.curr.del<-as.matrix(w.curr.del)
+		  w.curr<-as.matrix(w.curr)
+		  
+		  gbar <- c(1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1),
+		            w.curr.del)
+		  
+		  ##Generate the covariance matrix used in the GMM estimate.
+		  if (is.null(invV))
+		  {
+		    Xtilde.2.2<-t(n.identity.vec)%*%n.identity.vec*2
+		    Xtilde.2.3<-t(Xtilde)%*%(-Xtilde%*%beta.curr)*-2
+		    Xtilde.3.3<-t(Xtilde)%*%sweep(Xtilde,MARGIN=1,pmin(as.vector(exp((Xtilde%*%beta.curr)^2/sigmasq + log(sigmasq + (Xtilde%*%beta.curr)^2))), 10^250),'*')
+		    
+		    V<-rbind(1/n*cbind(Xtilde.2.2,t(Xtilde.2.3)),
+		             1/n*cbind(Xtilde.2.3,Xtilde.3.3))
+		    invV<-ginv(V)
+		  }		  
 		
 		  ##Generate mean imbalance.
-		  loss1<-t(w.curr)%*%Xtilde%*%XtildeprimeXtilde.inv%*%t(Xtilde)%*%(w.curr)
-		  loss1
+		  loss1<-t(gbar)%*%invV%*%(gbar)
+		  out1<-list("loss"=loss1*n, "invV"=invV)
+		  out1
 	  }
+	  
+	  bal.loss<-function(x,...) bal.func(x,...)$loss
 	  
 	  gmm.gradient<-function(params.curr, X.gmm=X, invV)
 	  {
 	  	##Generate probabilities.
-		##Trim probabilities, and generate weights.
-		beta.curr<-params.curr[-length(params.curr)]
-		sigmasq<-exp(params.curr[length(params.curr)])
-			
-		probs.curr<-dnorm(Ttilde, mean = Xtilde%*%beta.curr, sd = sqrt(sigmasq), log = TRUE)
-		probs.curr<-pmin(log(1-probs.min),probs.curr)
-		probs.curr<-pmax(log(probs.min),probs.curr)
-		
-		w.curr<-Ttilde*exp(stabilizers - probs.curr)
-		
-
-		##Generate the vector of mean imbalance by weights.
-		w.curr.del<-1/n*t(Xtilde)%*%w.curr
-		w.curr.del<-as.matrix(w.curr.del)
-		w.curr<-as.matrix(w.curr)
-
-		##Generate g-bar, as in the paper.
-		gbar<-c(1/n*t(Xtilde)%*%(Ttilde-Xtilde%*%beta.curr)/sigmasq,
-				1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2) - 1/(2*sigmasq)),
-				w.curr.del)
-		
-		dgbar.1.1<-t(-Xtilde)%*%Xtilde/sigmasq
-		dgbar.1.2<-matrix(-(Ttilde - Xtilde%*%beta.curr)/(sigmasq^2), nrow = 1)%*%Xtilde
-		dgbar.2.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.curr)^2/(sigmasq^3) + (2*sigmasq^2)^(-1))
-		dgbar.3.1<-sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*')%*%Xtilde
-		dgbar.3.2<-matrix(-w.curr*((Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2) - 1/(2*sigmasq)), nrow = 1)%*%Xtilde
-		dgbar<-1/n*cbind(rbind(dgbar.1.1, dgbar.1.2*sigmasq),
-						 rbind(t(dgbar.1.2), dgbar.2.2*sigmasq),
-						 rbind(dgbar.3.1, dgbar.3.2*sigmasq))
-		
-		out<-2*n*dgbar%*%invV%*%gbar
-		out
+  		##Trim probabilities, and generate weights.
+  		beta.curr<-params.curr[-length(params.curr)]
+  		sigmasq<-exp(params.curr[length(params.curr)])
+  			
+  		probs.curr<-dnorm(Ttilde, mean = Xtilde%*%beta.curr, sd = sqrt(sigmasq), log = TRUE)
+  		probs.curr<-pmin(log(1-probs.min),probs.curr)
+  		probs.curr<-pmax(log(probs.min),probs.curr)
+  		
+  		w.curr<-Ttilde*exp(stabilizers - probs.curr)
+  		
+  
+  		##Generate the vector of mean imbalance by weights.
+  		w.curr.del<-1/n*t(Xtilde)%*%w.curr
+  		w.curr.del<-as.matrix(w.curr.del)
+  		w.curr<-as.matrix(w.curr)
+  
+  		##Generate g-bar, as in the paper.
+  		gbar<-c(1/n*t(Xtilde)%*%(Ttilde-Xtilde%*%beta.curr)/sigmasq,
+  		        1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1),
+  		        w.curr.del)
+  		
+  		dgbar.1.1<-t(-Xtilde)%*%Xtilde/sigmasq
+  		dgbar.1.2<-matrix(-(Ttilde - Xtilde%*%beta.curr)/(sigmasq^2), nrow = 1)%*%Xtilde
+  		dgbar.2.1<-t(Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.curr)/sigmasq, ncol = 1)
+  		dgbar.2.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.curr)^2/(sigmasq^2))
+  		dgbar.3.1<-sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*')%*%Xtilde
+  		dgbar.3.2<-matrix(-w.curr*((Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2) - 1/(2*sigmasq)), nrow = 1)%*%Xtilde
+  		dgbar<-1/n*cbind(rbind(dgbar.1.1, dgbar.1.2*sigmasq),
+  						 rbind(dgbar.2.1, dgbar.2.2*sigmasq),
+  						 rbind(dgbar.3.1, dgbar.3.2*sigmasq))
+  		
+  		out<-2*n*dgbar%*%invV%*%gbar
+  		out
 	  }
 	  
 	  bal.gradient<-function(params.curr, invV=NULL)
 	  {
-	  	beta.curr<-params.curr[-length(params.curr)]
-		  sigmasq<-exp(params.curr[length(params.curr)])
-		
-	  	probs.curr<-dnorm(Ttilde, mean = Xtilde%*%beta.curr, sd = sqrt(sigmasq), log = TRUE)
-		  probs.curr<-pmin(log(1-probs.min),probs.curr)
-		  probs.curr<-pmax(log(probs.min),probs.curr)
-		
-		  w.curr<-Ttilde*exp(stabilizers - probs.curr)
-		
-		  dw<-1/n*rbind(sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*'),
-			         		  sigmasq*as.vector(-w.curr*((Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2) - 1/(2*sigmasq))))
-		  ##Generate mean imbalance.
-      out<-2*n*dw%*%Xtilde%*%XtildeprimeXtilde.inv%*%t(Xtilde)%*%(w.curr)
-      out
+	    ##Generate probabilities.
+	    ##Trim probabilities, and generate weights.
+	    beta.curr<-params.curr[-length(params.curr)]
+	    sigmasq<-exp(params.curr[length(params.curr)])
+	    
+	    probs.curr<-dnorm(Ttilde, mean = Xtilde%*%beta.curr, sd = sqrt(sigmasq), log = TRUE)
+	    probs.curr<-pmin(log(1-probs.min),probs.curr)
+	    probs.curr<-pmax(log(probs.min),probs.curr)
+	    
+	    w.curr<-Ttilde*exp(stabilizers - probs.curr)
+	    
+	    ##Generate the vector of mean imbalance by weights.
+	    w.curr.del<-1/n*t(Xtilde)%*%w.curr
+	    w.curr.del<-as.matrix(w.curr.del)
+	    w.curr<-as.matrix(w.curr)
+	    
+	    ##Generate g-bar, as in the paper.
+	    gbar<-c(1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1),
+	            w.curr.del)
+	    
+	    dgbar.2.1<-t(Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.curr)/sigmasq, ncol = 1)
+	    dgbar.2.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.curr)^2/(sigmasq^2))
+	    dgbar.3.1<-sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*')%*%Xtilde
+	    dgbar.3.2<-matrix(-w.curr*((Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2) - 1/(2*sigmasq)), nrow = 1)%*%Xtilde
+	    dgbar<-1/n*cbind(rbind(dgbar.2.1, dgbar.2.2*sigmasq),
+	                     rbind(dgbar.3.1, dgbar.3.2*sigmasq))
+	    
+	    out<-2*n*dgbar%*%invV%*%gbar
+	    out
 	  }
 	  
 	  n<-length(treat)
 	  x.orig<-x<-cbind(as.matrix(X))
-	  Xtilde<-apply(X,2,function(x) (x - mean(x)))
+	  int.ind <- which(apply(X, 2, sd) <= 10^-10)
+	  Xtilde<-cbind(X[,int.ind], apply(as.matrix(X[,-int.ind]),2,function(x) (x - mean(x))))
+	  #Xtilde<-cbind(X[,int.ind], scale(X[,-int.ind]%*%solve(chol(var(X[,-int.ind]))), center = TRUE, scale = FALSE))
 	  XtildeprimeXtilde.inv<-ginv(t(Xtilde)%*%Xtilde)
 	  Ttilde<-(treat-mean(treat))
 	  n.identity.vec<-matrix(1,nrow=n,ncol=1)
@@ -150,6 +191,7 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 	  if (twostep)
 	  {
 	    glm.invV<-gmm.func(params.curr)$invV
+	    bal.glm.invV<-bal.func(params.curr)$invV
   	}
 	  
 	  ##Generate estimates for balance and CBPS
@@ -157,12 +199,14 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 	
 	  if (twostep)
 	  {
-		opt.bal<-optim(gmm.init, bal.loss, control=list("maxit"=iterations), method="BFGS", gr = bal.gradient, hessian = TRUE)
+  		opt.bal<-optim(gmm.init, bal.loss, control=list("maxit"=iterations), method="BFGS", gr = bal.gradient, 
+  		               invV = bal.glm.invV, hessian = TRUE)
 	  }
 	  else
 	  {
-		opt.bal<-tryCatch({optim(gmm.init, bal.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)},
-						   error = function(err) {return(optim(gmm.init, bal.loss, control=list("maxit"=iterations), method="Nelder-Mead", hessian=TRUE))})
+		  opt.bal<-tryCatch({optim(gmm.init, bal.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)},
+						             error = function(err) {return(optim(gmm.init, bal.loss, control=list("maxit"=iterations), 
+						                                                 method="Nelder-Mead", hessian=TRUE))})
 	  }
 	  params.bal<-opt.bal$par
 		
@@ -203,7 +247,7 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 			probs.opt<-probs.mle
 			J.opt <-mle.J
 			warning("Optimization failed.  Results returned are for MLE.")
-		}
+	  }
 		
 	  ##Generate weights
 	  w.opt<-exp(stabilizers - probs.opt)
@@ -223,9 +267,10 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 	  }
 	  
 	  XG.1.1<-t(-Xtilde)%*%Xtilde/sigmasq
-	  XG.1.2<-t(-Xtilde)%*%(Ttilde - Xtilde%*%beta.opt)/(sigmasq^2)
+	  XG.1.2<-t(Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.opt)/sigmasq, ncol = 1)
 	  XG.1.3<-sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.opt)/sigmasq*Ttilde*w.opt,'*')%*%Xtilde
-	  XG.2.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.opt)^2/(sigmasq^3) + (2*sigmasq^2)^(-1))
+	  XG.2.1<-t(-Xtilde)%*%(Ttilde - Xtilde%*%beta.opt)/(sigmasq^2)
+	  XG.2.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.opt)^2/(sigmasq^2))
 	  XG.2.3<-matrix(-Ttilde*w.opt*((Ttilde - Xtilde%*%beta.opt)^2/(2*sigmasq^2) - 1/(2*sigmasq)), nrow = 1)%*%Xtilde
 	  
 	  XW.1<-sweep(Xtilde,MARGIN=1,as.vector((Ttilde-Xtilde%*%beta.opt)/sigmasq),'*')
@@ -233,15 +278,16 @@ CBPS.Continuous<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, ite
 	  XW.3<-sweep(Xtilde,MARGIN=1,as.vector(Ttilde*exp(stabilizers - probs.opt)),'*')
 	  	  
 	  G<-1/n*rbind(cbind(XG.1.1,XG.1.2,XG.1.3),
-				   cbind(t(XG.1.2),XG.2.2,XG.2.3))
+				         cbind(t(XG.1.2),XG.2.2,XG.2.3))
 	  W1<-rbind(t(XW.1),t(XW.2),t(XW.3))
 	  Omega<-1/n*(W1%*%t(W1))
 	  
 	  vcov<-(ginv(G%*%W%*%t(G))%*%G%*%W%*%Omega%*%W%*%t(G)%*%ginv(G%*%W%*%t(G)))[1:k,1:k] 
-	  #Reverse the centering from using Ttilde and Xtilde
+	  #Reverse the centering and Choleski decomposition from using Ttilde and Xtilde
 	  beta.tilde<-beta.opt
 	  beta.opt<-ginv(t(X)%*%X)%*%t(X)%*%(Xtilde%*%beta.opt + mean(treat))
 	  vcov<-vcov + ginv(t(Xtilde)%*%Xtilde)%*%(t(Xtilde)%*%Xtilde)*as.numeric(2*t(X%*%beta.opt)%*%n.identity.vec*mean(treat) - mean(treat)^2 + t(Xtilde%*%beta.tilde)%*%(Xtilde%*%beta.tilde) - t(X%*%beta.opt)%*%(X%*%beta.opt))
+	  # May also need to scale sigmasq and omega
 	  
 	  class(beta.opt)<-"coef"
 		
