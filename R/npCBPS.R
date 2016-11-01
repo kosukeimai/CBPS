@@ -122,7 +122,7 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
     ans
   }
   
-  log_elgiven_eta=function(par,eta,z,eps,ncon_cor){
+  log_elgiven_eta=function(par,eta,z,ncon_cor){
     ncon=ncol(z)
     gamma=par
     eta_long=as.matrix(c(eta, rep(0,ncon-ncon_cor)))
@@ -136,7 +136,7 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
     return(log_el)
   }
   
-  get.w=function(eta,z, sumw.tol=0.05){
+  get.w=function(eta,z, sumw.tol=0.05, eps){
     gam.init=rep(0, ncon)  
     opt.gamma.given.eta=optim(par=gam.init, eta=eta, method="BFGS", fn=log_elgiven_eta, z=z, eps=eps, ncon_cor=ncon_cor, control=list(fnscale=1))  
     gam.opt.given.eta=opt.gamma.given.eta$par
@@ -263,6 +263,7 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
   
   #Some useful values:
   par.opt=eta.optim.out$maximum
+  eta.opt=NULL
   eta.opt=par.opt*eta.to.be.scaled
   
   log.p.eta.opt=sum(-.5*log(2*pi*eta_prior_sd^2) - (eta.opt^2)/(2*eta_prior_sd^2))
