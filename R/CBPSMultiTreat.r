@@ -172,15 +172,14 @@ CBPS.3Treat<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterati
   
   n<-length(treat)
   n.t<-c(sum(T1),sum(T2),sum(T3))
-  x.orig<-x<-cbind(as.matrix(X))
-  
+
   ##Run multionmial logit
   dat.dummy<-data.frame(treat=treat,X)
   #Need to generalize for different dimensioned X's
-  xnam<- paste0("X", 1:dim(X)[2])
+  xnam<- colnames(dat.dummy[,-1])
   fmla <- as.formula(paste("as.factor(treat) ~ -1 + ", paste(xnam, collapse= "+")))
   mnl1<-multinom(fmla, data=dat.dummy, trace=FALSE)
-  mcoef<-matrix(coef(mnl1),k,no.treats-1,byrow=TRUE)
+  mcoef<-t(coef(mnl1))
   mcoef[is.na(mcoef[,1]),1]<-0
   mcoef[is.na(mcoef[,2]),2]<-0
   probs.mnl<-cbind(1/(1+exp(X%*%mcoef[,1])+exp(X%*%mcoef[,2])),
@@ -194,9 +193,9 @@ CBPS.3Treat<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterati
   probs.mnl<-probs.mnl/norms
   
   mnl1$fit<-matrix(probs.mnl,nrow=n,ncol=no.treats)
-  beta.curr<-mcoef
+  beta.curr<-matrix(mcoef, ncol = 1)
   beta.curr[is.na(beta.curr)]<-0
-  
+
   alpha.func<-function(alpha) gmm.loss(beta.curr*alpha)
   beta.curr<-beta.curr*optimize(alpha.func,interval=c(.8,1.1))$min
   
@@ -559,15 +558,14 @@ CBPS.4Treat<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterati
   
   n<-length(treat)
   n.t<-c(sum(T1),sum(T2),sum(T3),sum(T4))
-  x.orig<-x<-cbind(as.matrix(X))
-  
+
   ##Run multionmial logit
   dat.dummy<-data.frame(treat=treat,X)
   #Need to generalize for different dimensioned X's
-  xnam<- paste0("X", 1:dim(X)[2])
+  xnam<- colnames(dat.dummy[,-1])
   fmla <- as.formula(paste("as.factor(treat) ~ -1 + ", paste(xnam, collapse= "+")))
   mnl1<-multinom(fmla, data=dat.dummy,trace=FALSE)
-  mcoef<-matrix(coef(mnl1),k,no.treats-1,byrow=TRUE)
+  mcoef<-t(coef(mnl1))
   mcoef[is.na(mcoef[,1]),1]<-0
   mcoef[is.na(mcoef[,2]),2]<-0
   mcoef[is.na(mcoef[,3]),3]<-0
@@ -583,7 +581,7 @@ CBPS.4Treat<-function(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterati
   norms<-apply(probs.mnl,1,sum)
   probs.mnl<-probs.mnl/norms
   mnl1$fit<-matrix(probs.mnl,nrow=n,ncol=no.treats)
-  beta.curr<-mcoef
+  beta.curr<-matrix(mcoef, ncol = 1)
   beta.curr[is.na(beta.curr)]<-0
   
   

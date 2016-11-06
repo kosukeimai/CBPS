@@ -82,7 +82,7 @@ if(msm.variance=="approx") full.var<-FALSE
 if(msm.variance=="full") full.var<-TRUE
 
 X.mat<-X
-X.mat<-X.mat[,apply(X.mat,2,sd)>0]
+X.mat<-X.mat[,apply(X.mat,2,sd)>0, drop = FALSE]
 
 ##Format design matrix, run glm
 glm1<-glm(treat~X.mat,family="binomial")
@@ -94,20 +94,20 @@ glm1<-glm(treat~X.mat,family="binomial")
 ##################
 #if(time.vary==FALSE){
 X.svd<-X.mat
-X.svd<-apply(X.svd,2,FUN=function(x) (x-mean(x))/sd(x))
+X.svd<-apply(X.svd,2,FUN=function(x) (x-mean(x))/sd(x), drop=FALSE)
 #X.svd[,c(1,2,7)]<-X.svd[,c(1,2,7)]*10
 X.svd<-svd(X.svd)$u%*%diag(svd(X.svd)$d>0.0001)
-X.svd<-X.svd[,apply(X.svd,2,sd)>0]
+X.svd<-X.svd[,apply(X.svd,2,sd)>0,drop=FALSE]
 glm1<-glm(treat~X.svd,family="binomial")
 if(time.vary==TRUE){
 #} else{
 X.svd<-NULL
 for(i in sort(unique(time))){
-	X.sub<-X.mat[time==i,]
+	X.sub<-X.mat[time==i,,drop=FALSE]
 	X.sub<-apply(X.sub,2,FUN=function(x) (x-mean(x))/sd(x))
 	X.sub[is.na(X.sub)]<-0
 	X.sub<-svd(X.sub)$u%*%diag(svd(X.sub)$d>0.0001)
-	X.sub<-X.sub[,apply(X.sub,2,sd)>0]
+	X.sub<-X.sub[,apply(X.sub,2,sd)>0,drop=FALSE]
 	X.svd<-rbind(X.svd,X.sub)
 	}
 ##Make matrix of time-varying glm starting vals
@@ -188,7 +188,9 @@ if(loss.glm<loss.msm){
 	warning("CBMSM fails to improve covariate balance relative to MLE.  \n GLM loss:    ", glm.fit$loss, "\n CBMSM loss:  ", msm.fit$loss, "\n")
 }
 
-out<-list("weights"=wts.out,"fitted.values"=probs.out,"id"=id0[1:n.obs],"glm.g"=glm.fit$g.all,"msm.g"=msm.fit$g.all,"glm.weights"=(uncond.probs/glm.fit$pr)[time==1])
+# I know I'm putting probs.out in the weights and wts.out in the fitted values, but that
+# is what Marc said to do
+out<-list("weights"=probs.out,"fitted.values"=wts.out,"id"=id0[1:n.obs],"glm.g"=glm.fit$g.all,"msm.g"=msm.fit$g.all,"glm.weights"=(uncond.probs/glm.fit$pr)[time==1])
 class(out)<-c("CBMSM","list")
 return(out)
 }

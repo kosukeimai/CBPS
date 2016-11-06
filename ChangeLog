@@ -9,3 +9,4 @@ version date      description
 0.9		08/07/14  Adds CBPSContinuous.  Major changes to interface for and backend of CBMSM.
 0.10	09/07/15  Adds nonparametric estimation.  Simplifies CBPS output.  Numeric treatments now interpreted as continuous, and factors are interpreted as multi-valued.  Improves interface for ATT.
 0.11	04/29/16  Adds Improved CBPS from Han et al through the baseline and diff arguments.
+0.12	11/01/16  Fixes bug that affected the weight for the first observation in the continuous case.  Fixed bug that caused npCBPS to ignore choice of corprior.  Added SVD to CBPS Optimal.

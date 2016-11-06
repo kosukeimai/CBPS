@@ -42,6 +42,7 @@
 data(LaLonde)
 
 ##Fitting npCBPS will take a couple of minutes
+<<<<<<< HEAD
 fit <- npCBPS(treat ~ age + educ + re75 + re74 + 
 			  I(re75==0) + I(re74==0),
 			  data = LaLonde, , corprior=.1/nrow(LaLonde))
