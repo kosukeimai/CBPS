@@ -1,8 +1,12 @@
 Package: CBPS
-Version: 0.11
-Date: 2016-05-12
+Version: 0.12
+Date: 2016-11-01
 Title: Covariate Balancing Propensity Score
-Author: Christian Fong <christianfong@stanford.edu>, Marc Ratkovic <ratkovic@princeton.edu>, Chad Hazlett <chazlett@ucla.edu>, Xiaolin Yang <xiaoliny@princeton.edu>, Kosuke Imai <kimai@princeton.edu>
+Author: Christian Fong <christianfong@stanford.edu>, 
+		Marc Ratkovic <ratkovic@princeton.edu>, 
+		Chad Hazlett <chazlett@ucla.edu>, 
+		Xiaolin Yang <xiaoliny@princeton.edu>, 
+		Kosuke Imai <kimai@princeton.edu>
 Maintainer: Christian Fong <christianfong@stanford.edu>
 Depends: R (>= 2.14), MASS, MatchIt, nnet, numDeriv
 Imports:

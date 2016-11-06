@@ -5,7 +5,8 @@
 \description{
   \code{npCBPS} is a method to estimate weights interpretable as (stabilized) inverse generlized propensity score weights, w_i = f(T_i)/f(T_i|X), without actually estimating a model for the treatment to arrive at f(T|X) estimates. In brief, this works by maximizing the empirical likelihood of observing the values of treatment and covariates that were observed, while constraining the weights to be those that (a) ensure balance on the covariates, and (b) maintain the original means of the treatment and covariates. In the continuous treatment context, this balance on covariates means zero correlation of each covariate with the treatment. Furthermore, we apply a Bayesian variant that allows the correlation of each covariate with the treatment to be slightly non-zero, as might be expected in a a given finite sample.}
 \usage{
-	  npCBPS(formula, data, na.action, corprior = 0.1, print.level = 0, ...)
+	  npCBPS(formula, data, na.action, corprior = 0.1, 
+			 print.level = 0, ...)
 	  npCBPS.fit(treat, X, corprior, print.level, ...)
 }
 \arguments{
@@ -41,9 +42,11 @@
 data(LaLonde)
 
 ##Fitting npCBPS will take a couple of minutes
-fit <- npCBPS(treat ~ age + educ + re75 + re74 + I(re75==0) + I(re74==0),
+fit <- npCBPS(treat ~ age + educ + re75 + re74 + 
+			  I(re75==0) + I(re74==0),
 			  data = LaLonde, , corprior=.1/nrow(LaLonde))
-summary(lm(re78 ~ treat + age + educ + re75 + re74 + I(re75==0) + I(re74==0),
+summary(lm(re78 ~ treat + age + educ + re75 + re74 + 
+		   I(re75==0) + I(re74==0),
 		   data = LaLonde, weights = fit$weights))
 }
 }

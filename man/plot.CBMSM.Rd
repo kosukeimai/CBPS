@@ -1,6 +1,6 @@
 \name{plot.CBMSM}
 \alias{plot.CBMSM}
-\title{Plotting Covariate Balancing Propensity Score Estimation for Marginal Structural Models}
+\title{Plotting CBPS Estimation for Marginal Structural Models}
 \description{Plots the absolute difference in standardized means before and after weighting.}
 \usage{\method{plot}{CBMSM}(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...)}
 \arguments{
