@@ -86,7 +86,7 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
     colnames(Td)=levels(D)[1:conds]
     #Td = scale(Td,center=TRUE,scale=FALSE) #rethink: should we be resaling?
     
-    z=matrix(NA,nrow=N,ncol=ncon)
+    z=matrix(NA,nrow=n,ncol=ncon)
     z=t(sapply(seq(1:n),function(x) t(kronecker(Td[x,],X[x,]))))
     
     #Add aditional constraints that E[wX*]=0, if desired
