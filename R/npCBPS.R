@@ -1,5 +1,5 @@
 #npCBPS parses the formula object and passes the result to npCBPS.fit
-npCBPS <- function(formula, data, na.action, corprior=.1, print.level=0, ...) {
+npCBPS <- function(formula, data, na.action, corprior=.01, print.level=0, ...) {
   if (missing(data)) 
     data <- environment(formula)
   call <- match.call()
