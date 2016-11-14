@@ -1,5 +1,5 @@
 #npCBPS parses the formula object and passes the result to npCBPS.fit
-npCBPS <- function(formula, data, na.action, corprior=.01, print.level=0, ...) {
+npCBPS <- function(formula, data, na.action, corprior=.1, print.level=0, ...) {
   if (missing(data)) 
     data <- environment(formula)
   call <- match.call()
@@ -40,65 +40,61 @@ npCBPS <- function(formula, data, na.action, corprior=.01, print.level=0, ...) {
 }
 npCBPS.fit=function(treat, X, corprior, print.level, ...){
   D=treat
-  rescale.orig=FALSE
+  rescale.orig=TRUE
   orig.X=X
-  #pre-processesing 
+  #pre-processesing: 
   X=X%*%solve(chol(var(X)))
   X=scale(X,center=TRUE, scale=TRUE)
-  
-  
+  n=nrow(X)
+  eps=1/n
   
   #Constraint matrix
   if (is.numeric(D)){
-    #re-orient each X to have positive correlation with T, or
-    #at least with first column of it if multi-dimensional
+    print("Estimating npCBPS as a continuous treatment.  To estimate for a binary or multi-valued treatment, use a factor.")
+    #re-orient each X to have positive correlation with T
     X=X%*%diag(as.vector(sign(cor(X,D))),nrow=ncol(X))
-    
     D=scale(D,center=TRUE, scale=TRUE)  
-    
-    #Begin changes here: 
-    #z=X*as.vector(D)
-    z=X*D[,1]
-    
-    if (ncol(D)>1){
-      for (j in 2:ncol(D)){
-        z=cbind(z, X*D[,2])
-      }}
-    
-    #End changes here.
-    
+    z=X*as.vector(D)
     z=cbind(z,X,D)
-    n=nrow(X)
     ncon=ncol(z)
     ncon_cor=ncol(X)*ncol(D)
   }
   
   if(is.factor(D)){
     #For factor treatments
-    #(and no user-supplied constraints)
-    #if(is.null(amat) && is.factor(T)) {
-    conds=length(levels(D))
-    conds=conds-1  #If we're going to drop last condition
+    Td=as.matrix(model.matrix(~D-1))
+    conds=dim(Td)[2]  
     dimX=dim(X)[2]
-    ncon=dimX*conds
     
-    Td = as.matrix(model.matrix(~D-1,model.frame(~D-1),contrasts=FALSE)[1:n,1:conds])
-    colnames(Td)=levels(D)[1:conds]
-    #Td = scale(Td,center=TRUE,scale=FALSE) #rethink: should we be resaling?
+    #Now divide each column of Td by it's sum
+    colsums=apply(Td,2,sum)
+    Td=Td%*%diag(1/colsums)
     
-    z=matrix(NA,nrow=n,ncol=ncon)
+    #Now subtract the last column from each of the others, and remove the last
+    subtractMat=Td[,conds]%*%t(as.matrix(rep(1, conds)))
+    Td=Td-subtractMat
+    Td=Td[,1:(conds-1)]
+    
+    #Center and rescale Td now
+    Td=scale(x=Td, center = TRUE, scale=TRUE)
+    
+    #form matrix z that will be needed to setup contrasts
+    z=matrix(NA,nrow=n,ncol=dimX*(conds-1))
     z=t(sapply(seq(1:n),function(x) t(kronecker(Td[x,],X[x,]))))
+    
+    
+    #Check that correlation of Td with X is very close to colMeans of z
+    cor.init=as.vector(t(apply(X = X,MARGIN = 2,function(x) cor(Td,x))))
+    rescale.factors=cor.init/colMeans(z)
+    if (print.level>0){print(rescale.factors)}
     
     #Add aditional constraints that E[wX*]=0, if desired
     #NB: I think we need another constraint to ensure something like E[wT*]=0
-    ncon_cor=dim(z)[2]
+    ncon_cor=dim(z)[2]  #keep track of number of constraints not including the additional mean constraint
     z=cbind(z,X)
-    ncon=dim(z)[2]
-    
-    #rm(Td,Tdc)
-    rm(Td)
+    ncon=dim(z)[2] #num constraints including mean constraints
+    #rm(Td)
   }
-  #}
   
   #-----------------------------------------------
   # Functions we will need
@@ -122,7 +118,7 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
     ans
   }
   
-  log_elgiven_eta=function(par,eta,z,ncon_cor){
+  log_elgiven_eta=function(par,eta,z,eps,ncon_cor){
     ncon=ncol(z)
     gamma=par
     eta_long=as.matrix(c(eta, rep(0,ncon-ncon_cor)))
@@ -132,7 +128,7 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
     arg = (n + t(gamma)%*%(eta_mat-t(z)))  
     #used to be:  arg = (1 + t(gamma)%*%(t(z)-eta_mat))  
     
-    log_el=-sum(llog(z=arg,eps=1/n))
+    log_el=-sum(llog(z=arg,eps=eps))
     return(log_el)
   }
   
@@ -155,11 +151,6 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
     
     if (abs(1-sum.w)<=sumw.tol){log_el=-sum(log(w_scaled))}
     if (abs(1-sum.w)>=sumw.tol){log_el=-sum(log(w_scaled))-10^4*(1+abs(1-sum.w))}
-    
-    #try a differentiable objective
-    #c1=10^2
-    #penalty=(c1-c1*sum.w)^2
-    #log_el = -sum(log(w_scaled))-penalty
     
     R=list()
     R$w=w
@@ -187,15 +178,14 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
   ##means of X and T: are they near 0?
   #sapply(seq(1,5), function(x) sum(X[,x]*wtest))
   #sum(T*wtest)
-  ##lesson: does well (but not exact) at getting weighted cor near eta (only when it converges)
-  
-  log_post = function(par,eta.to.be.scaled,eta_prior_sd,z, sumw.tol=.001){ 
+
+  log_post = function(par,eta.to.be.scaled,eta_prior_sd,z, eps=eps, sumw.tol=.001){ 
     #get log(p(eta))
     eta_now=par*eta.to.be.scaled
     log_p_eta=sum(-.5*log(2*pi*eta_prior_sd^2) - (eta_now^2)/(2*eta_prior_sd^2))
     
     #get best log_el for this eta  
-    el.out=get.w(eta_now,z, sumw.tol=sumw.tol)
+    el.out=get.w(eta=eta_now,z=z, sumw.tol=sumw.tol, eps=eps)
     #el.gamma=el.out$el.gamma
     #put it together into log(post)
     c=1 #in case we want to rescale the log(p(eta)), as sigma/c would.
@@ -205,39 +195,21 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
     return(log_post)
   }
   
-  #gradient of posterior -- not working
-  #post.grad = function(par,eta_prior_sd,z){
-  #  eta=par
-  #  got.w=get.w(par,z=z)
-  #  post.grad=-2*eta*n/(eta_prior_sd^2) - got.w$el.gamma
-  #  #c1=10^4
-  #  #penalty=(c1-c1*sum.w)^2
-  #  #penalty.grad=     
-  #  return(post.grad)
-  #}
-  
   ###-----------------------------------------------------------
   ### The main event
   ###-----------------------------------------------------------
   
   #Now the outer optimization over eta
-  
   #setup the prior
   eta_prior_sd=rep(corprior,ncon_cor)
   
   #get original correlations
-  
-  #begin changes here
-  #if (is.numeric(D)){eta.init=sapply(seq(1:ncon_cor), function(x) cor(X[,x],D))}
-  if (is.numeric(D)){
-    eta.init=as.vector(cor(X,D))
-  }
-  
-  #end changes here
+  if (is.numeric(D)){eta.init=sapply(seq(1:ncon_cor), function(x) cor(X[,x],D))}
   
   #for factor treatment, there is probably a better analog to the intialize correlation,
-  #but I anticipate we'll use eta.const instead anyhow
-  if (is.factor(D)){eta.init=rep(1,ncon_cor)}
+  if (is.factor(D)){
+    eta.init=cor.init
+  }
   
   #get vector of 1's long enough to be our dummy that gets rescaled to form eta if we want
   #constant etas:
@@ -247,36 +219,36 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
   # to cor(X,T). For additional constraints that hold down the mean of X and T we are assuming
   # eta=0 effectively.  They get padded in within the optimization.
   
-  #iterations.getw=100  #iterations of optim for the get.w (conditional on eta) search
-  #iterations.eta=20 #iterations for the search over eta.
-  
   #Determine if we want to rescale 1's or rescale the original correlations
   #rescale.orig=FALSE
   if(rescale.orig==TRUE){eta.to.be.scaled=eta.init}else{eta.to.be.scaled=eta.const}
   
-  #eta.optim.out=optim(par=0, eta.to.be.scaled=eta.to.be.scaled, method="L-BFGS-B", fn=log_post,
-  #                    eta_prior_sd=eta_prior_sd,z=z,
-  #                    upper=1, lower=-1, control=list(fnscale=-1,factr=1e15, maxit=iterations.eta))
-  
   eta.optim.out=optimize(f=log_post, interval=c(-1,1), eta.to.be.scaled=eta.to.be.scaled,
-                         sumw.tol=.001, eta_prior_sd=eta_prior_sd,z=z, maximum=TRUE)
+                         eps=eps, sumw.tol=.001, eta_prior_sd=eta_prior_sd,z=z, maximum=TRUE)
   
   #Some useful values:
   par.opt=eta.optim.out$maximum
-  eta.opt=NULL
   eta.opt=par.opt*eta.to.be.scaled
   
   log.p.eta.opt=sum(-.5*log(2*pi*eta_prior_sd^2) - (eta.opt^2)/(2*eta_prior_sd^2))
   
-  el.out.opt=get.w(eta=eta.opt,z)
+  el.out.opt=get.w(eta=eta.opt,z=z, eps=eps)
   sumw0=sum(el.out.opt$w)
   w=el.out.opt$w/sumw0
   log.el.opt=el.out.opt$log_el
   
-  
-  R=list("fitted.values"=1/(w/n),"deviance"=2*sum(log(1/w)),"y"=treat,"x"=orig.X,"converged"=eta.optim.out$conv, 
-         "constraints" = z, "weights"=w, "eta"=eta.opt, "log_el"=log.el.opt)
+  R=list()
+  R$par=par.opt
+  R$log.p.eta=log.p.eta.opt
+  R$log.el=log.el.opt
+  R$eta=eta.opt
+  R$sumw0=sumw0  #sum of original w prior to any corrective rescaling
+  R$weights=w
+  R$y=D
+  R$x=orig.X
+    
   class(R)<-"npCBPS"
+  
   return(R)
 }
 
