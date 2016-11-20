@@ -56,9 +56,7 @@ For cross-sectional data, the method can take continuous treatments and treatmen
 
 
 \seealso{\link{summary.CBPS}}
-
 \examples{
-\dontrun{
 ###
 ### Example: propensity score matching
 ###
@@ -75,7 +73,7 @@ library(MatchIt)
 m.out <- matchit(treat ~ fitted(fit), method = "nearest", 
 				 data = LaLonde, replace = TRUE)
 
-
+\dontrun{
 ### Example: propensity score weighting 
 ###
 ## Simulation from Kang and Shafer (2007).

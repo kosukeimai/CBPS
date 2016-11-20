@@ -94,7 +94,8 @@ glm1<-glm(treat~X.mat,family="binomial")
 ##################
 #if(time.vary==FALSE){
 X.svd<-X.mat
-X.svd<-apply(X.svd,2,FUN=function(x) (x-mean(x))/sd(x), drop=FALSE)
+#X.svd<-apply(X.svd,2,FUN=function(x) (x-mean(x))/sd(x), drop=FALSE)
+X.svd<-scale(X.svd) # Edit by Christian; this was causing an error
 #X.svd[,c(1,2,7)]<-X.svd[,c(1,2,7)]*10
 X.svd<-svd(X.svd)$u%*%diag(svd(X.svd)$d>0.0001)
 X.svd<-X.svd[,apply(X.svd,2,sd)>0,drop=FALSE]
@@ -104,7 +105,8 @@ if(time.vary==TRUE){
 X.svd<-NULL
 for(i in sort(unique(time))){
 	X.sub<-X.mat[time==i,,drop=FALSE]
-	X.sub<-apply(X.sub,2,FUN=function(x) (x-mean(x))/sd(x))
+	#X.sub<-apply(X.sub,2,FUN=function(x) (x-mean(x))/sd(x))
+	X.sub <- scale(X.sub) # Edit by Christian; this was causing an error
 	X.sub[is.na(X.sub)]<-0
 	X.sub<-svd(X.sub)$u%*%diag(svd(X.sub)$d>0.0001)
 	X.sub<-X.sub[,apply(X.sub,2,sd)>0,drop=FALSE]

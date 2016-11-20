@@ -20,7 +20,6 @@
 \seealso{\link{vcov}}
 
 \examples{
-\dontrun{
 ###
 ### Example: Variance-Covariance Matrix
 ###
@@ -32,5 +31,4 @@ fit <- CBPS(treat ~ age + educ + re75 + re74 + I(re75==0) + I(re74==0),
 		    data = LaLonde, ATT = TRUE)
 ## Get the variance-covariance matrix.
 vcov(fit)
-}
 }

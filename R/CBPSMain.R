@@ -33,22 +33,19 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   X<-cbind(1,X[,apply(X,2,sd)>0])
   
   # Parse formulae 2 and 3, if they are necessary
+  if (xor(is.null(baseline.formula), is.null(diff.formula))){
+    stop("Either baseline.formula or diff.formula not specified.  Both must be specified to use CBPSOptimal.  Otherwise, leave both NULL.")
+  }
   if(!is.null(baseline.formula))
   {	
     baselineX<-model.matrix(terms(baseline.formula))
     baselineX<-baselineX[,apply(baselineX,2,sd)>0]
-  }
-  else
-  {
-    baselineX <- NULL
-  }
-  if(!is.null(diff.formula))
-  {
     diffX<- model.matrix(terms(diff.formula))
     diffX<-diffX[,apply(as.matrix(diffX),2,sd)>0]
   }
   else
   {
+    baselineX <- NULL
     diffX <- NULL
   }
   
@@ -93,11 +90,21 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
     diag(Dx.inv)<-1
     x.mean<-apply(as.matrix(X[,-1]),2,mean)
     X[,-1]<-apply(as.matrix(X[,-1]),2,FUN=function(x) (x-mean(x))/sd(x))
-    svd1<-svd(X)
-    X<-svd1$u
+    # Only take SVD if we are not doing CBPS Optimal
+    if(is.null(baselineX)){
+      svd1<-svd(X)
+      X<-svd1$u   
+    }
+    else{# Standardize baselineX and diffX if we are doing CBPSOptimal
+      baselineX.mean<-apply(as.matrix(baselineX),2,mean)
+      baselineX<-apply(as.matrix(baselineX),2,FUN=function(x) (x-mean(x))/sd(x))
+      diffX.mean<-apply(as.matrix(diffX),2,mean)
+      diffX<-apply(as.matrix(diffX),2,FUN=function(x) (x-mean(x))/sd(x))
+    }
   }
   k<-qr(X)$rank
   if (k < ncol(X)) stop("X is not full rank")
+  
   XprimeX.inv<-ginv(t(X)%*%X)
   
   # Determine the number of treatments
@@ -134,10 +141,12 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
     
     # Reverse the svd, centering and scaling
     if (preprocess){
-      d.inv<- svd1$d
-      d.inv[d.inv> 1e-5]<-1/d.inv[d.inv> 1e-5]
-      d.inv[d.inv<= 1e-5]<-0      
-      beta.opt<-svd1$v%*%diag(d.inv)%*%coef(output)
+      if (is.null(baselineX)){
+        d.inv<- svd1$d
+        d.inv[d.inv> 1e-5]<-1/d.inv[d.inv> 1e-5]
+        d.inv[d.inv<= 1e-5]<-0      
+        beta.opt<-svd1$v%*%diag(d.inv)%*%coef(output)
+      }
       beta.opt[-1,]<-beta.opt[-1,]/x.sd
       beta.opt[1,]<-beta.opt[1,]-matrix(x.mean%*%beta.opt[-1,])
       output$coefficients<-beta.opt
@@ -151,7 +160,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
     
     if (no.treats == 2){
       colnames(output$coefficients)<-c("Treated")
-      if (preprocess){
+      if (preprocess & is.null(baselineX)){
         output$var<-ginv(t(X.orig)%*%X.orig)%*%t(X.orig)%*%X%*%svd1$v%*%ginv(diag(svd1$d))%*%variance%*%ginv(diag(svd1$d))%*%t(svd1$v)%*%t(X)%*%X.orig%*%ginv(t(X.orig)%*%X.orig)
       }
       colnames(output$var)<-names.X

@@ -17,29 +17,13 @@
 \author{Christian Fong, Marc Ratkovic, and Kosuke Imai.}
 
 \examples{
-
-\dontrun{
 ###
-### Example: Optimal Covariate Balance
+### Example: Assess Covariate Balance
 ###
-# Run for 4-treatment case
-set.seed(1)
-# Generate random X and underlying coefficients for probability.  
-# Determine probs and treatments.
-X<-cbind(rep(1,1000), mvrnorm(1000,c(0,0,0), 
-		 Sigma=matrix(c(5,.5,-.03,.5,1,-.27,-.03,-.27,1),3,3)))
-beta<-matrix(rnorm(12),4,3)
-baseline.prob<-apply(X\%*\%beta,1,function(x) (1+sum(exp(x)))^-1)
-prob<-cbind(baseline.prob, exp(X\%*\%beta[,1])*baseline.prob, 
-			exp(X\%*\%beta[,2])*baseline.prob, 
-			exp(X\%*\%beta[,3])*baseline.prob)
-treat.latent<-runif(1000)
-treat<-factor(ifelse(treat.latent < prob[,1], 1, 
-			  ifelse(treat.latent < (prob[,1] + prob[,2]), 2, 
-			  ifelse(treat.latent < (prob[,1] + prob[,2] + prob[,3]), 
-			  3, 4))))
-X<-X[,-1]
-fit4<-CBPS(treat ~ X, ATT = FALSE)
-balance(fit4)
-}
+data(LaLonde)
+## Estimate CBPS
+fit <- CBPS(treat ~ age + educ + re75 + re74 + 
+			I(re75==0) + I(re74==0), 
+			data = LaLonde, ATT = TRUE)
+balance(fit)
 }

@@ -37,17 +37,11 @@
 \author{Christian Fong, Chad Hazlett, and Kosuke Imai}
 
 \examples{
-\dontrun{
 ##Generate data
 data(LaLonde)
 
-##Fitting npCBPS will take a couple of minutes
-<<<<<<< HEAD
-fit <- npCBPS(treat ~ age + educ + re75 + re74 + 
-			  I(re75==0) + I(re74==0),
-			  data = LaLonde, , corprior=.1/nrow(LaLonde))
-summary(lm(re78 ~ treat + age + educ + re75 + re74 + 
-		   I(re75==0) + I(re74==0),
-		   data = LaLonde, weights = fit$weights))
-}
+## Restricted two only two covariates so that it will run quickly.
+## Performance will remain good if the full LaLonde specification is used
+fit <- npCBPS(treat ~ age + educ, data = LaLonde, corprior=.1/nrow(LaLonde))
+plot(fit)
 }
