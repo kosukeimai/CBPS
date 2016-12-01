@@ -78,16 +78,18 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
   k=0
   if(method=="over") bal.only=FALSE
   if(method=="exact") bal.only=TRUE
-  X.bal<-X
-  
+
   names.X<-colnames(X)
   names.X[apply(X,2,sd)==0]<-"(Intercept)"
   
   if (preprocess){
+    # My experiments suggest that something is going wrong with sd.
+    # When I remove that step, the variances are all off by the sd()
+    # When I remove the svd step, they all get too big.  The svd step
+    # seems to be driving the weird behavior when preprocess is FALSE.
     X.orig<-X
     x.sd<-apply(as.matrix(X[,-1]),2,sd)
     Dx.inv<-diag(c(1,x.sd))
-    diag(Dx.inv)<-1
     x.mean<-apply(as.matrix(X[,-1]),2,mean)
     X[,-1]<-apply(as.matrix(X[,-1]),2,FUN=function(x) (x-mean(x))/sd(x))
     # Only take SVD if we are not doing CBPS Optimal
@@ -105,12 +107,14 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
   k<-qr(X)$rank
   if (k < ncol(X)) stop("X is not full rank")
   
+  # When you take the svd, this is the identity matrix.  Perhaps
+  # we forgot to work this in somewhere
   XprimeX.inv<-ginv(t(X)%*%X)
   
   # Determine the number of treatments
   if (is.factor(treat)) {
     no.treats<-length(levels(treat))
-    if (no.treats > 4) stop("Parametric CBPS not defined for more than 4 treatment values.  Consider using a continuous value.")
+    if (no.treats > 4) stop("Parametric CBPS is not implemented for more than 4 treatment values.  Consider using a continuous value.")
     if (no.treats < 2) stop("Treatment must take more than one value")
     
     if (no.treats == 2)
@@ -119,24 +123,24 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
       {
         if(ATT==1)
         {
-          message("Does not support ATT=1 for now. Try ATT=0.")
+          message("CBPSOptimal does not support ATT=1 for now. Try ATT=0.")
         }
         output<-CBPSOptimal.2Treat(treat, X, baselineX, diffX, iterations, ATT=0, standardize = standardize)
       }
       else
       {
-        output<-CBPS.2Treat(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterations, ATT, standardize = standardize, twostep = twostep)
+        output<-CBPS.2Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, ATT, standardize = standardize, twostep = twostep)
       }
     }
     
     if (no.treats == 3)
     {
-      output<-CBPS.3Treat(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+      output<-CBPS.3Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
     }
     
     if (no.treats == 4)
     {
-      output<-CBPS.4Treat(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+      output<-CBPS.4Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
     }
     
     # Reverse the svd, centering and scaling
@@ -161,7 +165,12 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
     if (no.treats == 2){
       colnames(output$coefficients)<-c("Treated")
       if (preprocess & is.null(baselineX)){
-        output$var<-ginv(t(X.orig)%*%X.orig)%*%t(X.orig)%*%X%*%svd1$v%*%ginv(diag(svd1$d))%*%variance%*%ginv(diag(svd1$d))%*%t(svd1$v)%*%t(X)%*%X.orig%*%ginv(t(X.orig)%*%X.orig)
+        if (is.null(baselineX)){
+          output$var<-Dx.inv%*%ginv(t(X.orig)%*%X.orig)%*%t(X.orig)%*%X%*%svd1$v%*%ginv(diag(svd1$d))%*%variance%*%ginv(diag(svd1$d))%*%t(svd1$v)%*%t(X)%*%X.orig%*%ginv(t(X.orig)%*%X.orig)%*%Dx.inv
+        }
+        else{
+          output$var<-Dx.inv%*%variance%*%Dx.inv
+        }
       }
       colnames(output$var)<-names.X
       rownames(output$var)<-colnames(output$var)
@@ -214,7 +223,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
   } else if (is.numeric(treat)) {
     # Warn if it seems like the user meant to input a categorical treatment
     if (length(unique(treat)) <= 4) warning("Treatment vector is numeric.  Interpreting as a continuous treatment.  To solve for a binary or multi-valued treatment, make treat a factor.")
-    output<-CBPS.Continuous(treat, X, X.bal, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+    output<-CBPS.Continuous(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
     
     # Reverse svd, centering, and scaling
     if (preprocess){
@@ -236,7 +245,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
     # Calculate variance
     if (preprocess){
       var.1<-output$var
-      output$var<-ginv(t(X.orig)%*%X.orig)%*%t(X.orig)%*%X%*%svd1$v%*%ginv(diag(svd1$d))%*%var.1%*%ginv(diag(svd1$d))%*%t(svd1$v)%*%t(X)%*%X.orig%*%ginv(t(X.orig)%*%X.orig)
+      output$var<-Dx.inv%*%ginv(t(X.orig)%*%X.orig)%*%t(X.orig)%*%X%*%svd1$v%*%ginv(diag(svd1$d))%*%var.1%*%ginv(diag(svd1$d))%*%t(svd1$v)%*%t(X)%*%X.orig%*%ginv(t(X.orig)%*%X.orig)%*%Dx.inv
     }
     rownames(output$var)<-names.X
     colnames(output$var)<-rownames(output$var)
