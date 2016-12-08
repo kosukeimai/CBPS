@@ -228,6 +228,9 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 	probs.opt<-pmin(1-probs.min,probs.opt)
 	probs.opt<-pmax(probs.min,probs.opt)
 	
+	print(cbind(bal.gradient(beta.opt), grad(bal.loss, beta.opt)))
+	print(cbind(gmm.gradient(beta.opt, invV = this.invV), grad(gmm.loss, beta.opt, invV = this.invV)))
+	
 	##Generate weights
 	if(ATT){
 		w.opt<-abs(ATT.wt.func(beta.opt)) 
