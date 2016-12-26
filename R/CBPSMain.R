@@ -88,21 +88,26 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
     # When I remove the svd step, they all get too big.  The svd step
     # seems to be driving the weird behavior when preprocess is FALSE.
     X.orig<-X
-    x.sd<-apply(as.matrix(X[,-1]),2,sd)
-    Dx.inv<-diag(c(1,x.sd))
-    x.mean<-apply(as.matrix(X[,-1]),2,mean)
-    X[,-1]<-apply(as.matrix(X[,-1]),2,FUN=function(x) (x-mean(x))/sd(x))
+    # x.sd<-apply(as.matrix(X[,-1]),2,sd)
+    # Dx.inv<-diag(c(1,x.sd))
+    # x.mean<-apply(as.matrix(X[,-1]),2,mean)
+    # X[,-1]<-apply(as.matrix(X[,-1]),2,FUN=function(x) (x-mean(x))/sd(x))
     # Only take SVD if we are not doing CBPS Optimal
     if(is.null(baselineX)){
-      svd1<-svd(X)
-      X<-svd1$u   
+    		x.sd<-apply(as.matrix(X[,-1]),2,sd)
+    	Dx.inv<-diag(c(1,x.sd))
+    	x.mean<-apply(as.matrix(X[,-1]),2,mean)
+    	X[,-1]<-apply(as.matrix(X[,-1]),2,FUN=function(x) (x-mean(x))/sd(x))
+      	
+      	svd1<-svd(X)
+	    X<-svd1$u   
     }
-    else{# Standardize baselineX and diffX if we are doing CBPSOptimal
-      baselineX.mean<-apply(as.matrix(baselineX),2,mean)
-      baselineX<-apply(as.matrix(baselineX),2,FUN=function(x) (x-mean(x))/sd(x))
-      diffX.mean<-apply(as.matrix(diffX),2,mean)
-      diffX<-apply(as.matrix(diffX),2,FUN=function(x) (x-mean(x))/sd(x))
-    }
+    # else{Standardize baselineX and diffX if we are doing CBPSOptimal
+      # baselineX.mean<-apply(as.matrix(baselineX),2,mean)
+      # baselineX<-apply(as.matrix(baselineX),2,FUN=function(x) (x-mean(x))/sd(x))
+      # diffX.mean<-apply(as.matrix(diffX),2,mean)
+      # diffX<-apply(as.matrix(diffX),2,FUN=function(x) (x-mean(x))/sd(x))
+    # }
   }
   k<-qr(X)$rank
   if (k < ncol(X)) stop("X is not full rank")
@@ -144,19 +149,21 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, preprocess, iteratio
     }
     
     # Reverse the svd, centering and scaling
+    print("start")
     if (preprocess){
       if (is.null(baselineX)){
         d.inv<- svd1$d
         d.inv[d.inv> 1e-5]<-1/d.inv[d.inv> 1e-5]
         d.inv[d.inv<= 1e-5]<-0      
         beta.opt<-svd1$v%*%diag(d.inv)%*%coef(output)
+        beta.opt[-1,]<-beta.opt[-1,]/x.sd
+      	beta.opt[1,]<-beta.opt[1,]-matrix(x.mean%*%beta.opt[-1,])
+      }else{ #added by Xiaolin to deal with cases when baselineX is not null. (12/26/2016)
+      	beta.opt<-as.matrix(coef(output))
       }
-      beta.opt[-1,]<-beta.opt[-1,]/x.sd
-      beta.opt[1,]<-beta.opt[1,]-matrix(x.mean%*%beta.opt[-1,])
       output$coefficients<-beta.opt
       output$x<-X.orig
     }
-
     rownames(output$coefficients)<-names.X
     
     # Calculate the variance
