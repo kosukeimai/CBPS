@@ -634,9 +634,6 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
   norms<-apply(probs.opt,1,sum)
   probs.opt<-probs.opt/norms
   
-  print(cbind(bal.gradient(beta.opt), grad(bal.loss, beta.opt)))
-  print(cbind(gmm.gradient(beta.opt, invV = this.invV), grad(gmm.loss, beta.opt, invV = this.invV)))
-  
   J.opt<-ifelse(twostep, gmm.func(beta.opt, invV = this.invV)$loss, gmm.func(beta.opt)$loss)
   
   if ((J.opt > gmm.loss(mcoef)) & (bal.loss(beta.opt) > bal.loss(mcoef)))

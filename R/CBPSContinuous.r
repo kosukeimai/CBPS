@@ -176,9 +176,6 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   params.curr<-params.curr*optimize(alpha.func,interval=c(.8,1.1))$min
   glm.invV<-gmm.func(params.curr)$invV
 
-  print(cbind(gmm.gradient(params.curr, invV = glm.invV)/grad(gmm.loss, params.curr, invV = glm.invV)))
-  print(cbind(bal.gradient(params.curr)/grad(bal.loss, params.curr)))
-  
   ##Generate estimates for balance and CBPS
   gmm.init<-params.curr
   
