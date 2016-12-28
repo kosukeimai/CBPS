@@ -157,7 +157,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
          output$var<-Dx.inv%*%ginv(t(X.orig)%*%X.orig)%*%t(X.orig)%*%X%*%svd1$v%*%ginv(diag(svd1$d))%*%variance%*%ginv(diag(svd1$d))%*%t(svd1$v)%*%t(X)%*%X.orig%*%ginv(t(X.orig)%*%X.orig)%*%Dx.inv
       }
       else{
-        output$var<-Dx.inv%*%variance%*%Dx.inv
+        output$var<-variance
       }
       colnames(output$var)<-names.X
       rownames(output$var)<-colnames(output$var)
