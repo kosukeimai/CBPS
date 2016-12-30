@@ -63,19 +63,21 @@ American Statistical Association. \url{http://imai.princeton.edu/research/MSM.ht
 
 data(Blackwell)
 
-form1<-"d.gone.neg ~ d.gone.neg.l1 + d.gone.neg.l2 + d.neg.frac.l3 + 
-		camp.length + camp.length + deminc + base.poll + year.2002 + 
-		year.2004 + year.2006 + base.und + office"
+## Quickly fit a short model to test
+form0 <- "d.gone.neg ~ d.gone.neg.l1 + camp.length"
+fit0<-CBMSM(formula = form0, time=Blackwell$time,id=Blackwell$demName,
+			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
+			msm.variance = "approx", time.vary = FALSE)
 
+\dontrun{
 ##Fitting the models in Imai and Ratkovic  (2014)		
 ##Warning: may take a few mintues; setting time.vary to FALSE
 ##Results in a quicker fit but with poorer balance
 ##Usually, it is best to use time.vary TRUE
-fit0<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
-			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-			msm.variance = "full", time.vary = FALSE)
-
-\dontrun{
+form1<-"d.gone.neg ~ d.gone.neg.l1 + d.gone.neg.l2 + d.neg.frac.l3 + 
+		camp.length + camp.length + deminc + base.poll + year.2002 + 
+		year.2004 + year.2006 + base.und + office"
+		
 fit1<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
 			msm.variance = "full", time.vary = TRUE)

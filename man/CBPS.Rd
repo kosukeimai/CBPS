@@ -67,12 +67,12 @@ fit <- CBPS(treat ~ age + educ + re75 + re74 +
 			I(re75==0) + I(re74==0), 
 			data = LaLonde, ATT = TRUE)
 summary(fit)
+\dontrun{
 ## matching via MatchIt: one to one nearest neighbor with replacement
 library(MatchIt)
 m.out <- matchit(treat ~ fitted(fit), method = "nearest", 
 				 data = LaLonde, replace = TRUE)
 
-\dontrun{
 ### Example: propensity score weighting 
 ###
 ## Simulation from Kang and Shafer (2007).
