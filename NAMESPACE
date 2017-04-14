@@ -9,7 +9,7 @@ importFrom("stats", ".getXlevels", "as.formula", "binomial", "coef",
            "model.matrix", "model.response", "naprint", "optim",
            "optimize", "pnorm", "sd", "symnum", "var", "terms")
 importFrom("utils", "packageDescription")
-export(CBPS, summary.CBPS, CBMSM, npCBPS, balance)
+export(CBPS, summary.CBPS, CBMSM, npCBPS, CBIV, balance)
 
 S3method(summary, CBPS)
 S3method(print, CBPS)
