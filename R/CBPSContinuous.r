@@ -31,13 +31,14 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
       Xtilde.1.1<-1/sigmasq*t(Xtilde)%*%(Xtilde)
       Xtilde.1.2<-t(Xtilde)%*%(Xtilde)/sigmasq
       Xtilde.1.3<-t(Xtilde)%*%n.identity.vec*0
-      Xtilde.2.2<-t(Xtilde)%*%sweep(Xtilde,MARGIN=1,pmin(as.vector(exp((Xtilde%*%beta.curr)^2/sigmasq + log(sigmasq + (Xtilde%*%beta.curr)^2))), 10^250),'*')
+      Xtilde.2.2<-t(Xtilde)%*%sweep(Xtilde,MARGIN=1,as.vector(exp((Xtilde%*%beta.curr)^2/sigmasq + log(sigmasq + (Xtilde%*%beta.curr)^2))),'*')
       Xtilde.2.3<-t(Xtilde)%*%(-Xtilde%*%beta.curr)*-2/sigmasq
       Xtilde.3.3<-t(n.identity.vec)%*%n.identity.vec*2
       
       V<-rbind(1/n*cbind(Xtilde.1.1,Xtilde.1.2,Xtilde.1.3),
                1/n*cbind(Xtilde.1.2,Xtilde.2.2,Xtilde.2.3),
                1/n*cbind(t(Xtilde.1.3),t(Xtilde.2.3),Xtilde.3.3))
+    if(max(is.infinite(V))) stop('Encountered an infinite value in the weighting matrix.  Use the just-identified version of CBPS instead by setting method = "exact".')
       invV<-ginv(V)
     }
     
@@ -221,14 +222,19 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   probs.opt<-pmin(log(1-probs.min),probs.opt)
   probs.opt<-pmax(log(probs.min),probs.opt)
   
-  J.opt<-ifelse(twostep, gmm.func(params.opt, invV = glm.invV)$loss, gmm.func(params.opt)$loss)
-  
-  if ((J.opt > mle.J) & (bal.loss(params.opt) > mle.bal))
-  {	  
-    beta.opt<-mcoef
-    probs.opt<-probs.mle
-    J.opt <-mle.J
-    warning("Optimization failed.  Results returned are for MLE.")
+  if (!bal.only){
+    J.opt<-ifelse(twostep, gmm.func(params.opt, invV = glm.invV)$loss, gmm.func(params.opt)$loss)
+    
+    if ((J.opt > mle.J) & (bal.loss(params.opt) > mle.bal))
+    {	  
+      beta.opt<-mcoef
+      probs.opt<-probs.mle
+      J.opt <-mle.J
+      warning("Optimization failed.  Results returned are for MLE.")
+    }
+  }
+  else{
+    J.opt<-bal.loss(params.opt)
   }
   
   ##Generate weights
