@@ -279,7 +279,20 @@ CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
     out
   }
   
-  beta.init<-rep(0,2*k)
+  # Get starting point for optim
+  beta.n0 <- coef(glm(I(1-Tr) ~ - 1 + X, subset = which(Z == 1)))
+  beta.a0 <- coef(glm(Tr ~ -1 + X, subset = which(Z == 0)))
+  p.hat.a0 <- pmin(pmax(exp(X%*%beta.a0)/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
+  p.hat.n0 <- pmin(pmax(exp(X%*%beta.n0)/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
+  p.hat.c0 <- pmin(pmax(1/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
+  
+  sums <- p.hat.c0 + p.hat.a0 + p.hat.n0
+  p.hat.c0 <- p.hat.c0/sums
+  p.hat.a0 <- p.hat.a0/sums
+  p.hat.n0 <- p.hat.n0/sums
+  
+  beta.init <- c(coef(lm(log(p.hat.c0/(1-p.hat.c0)) ~ -1 + X)), coef(lm(log(p.hat.a0/(1-p.hat.a0)) ~ -1 + X)))
+  
   mle.opt<-optim(beta.init, mle.loss, control=list("maxit"=iterations), method = "BFGS", gr = mle.gradient)
   beta.mle<-mle.opt$par
   
@@ -287,8 +300,15 @@ CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
   
   if (score.only)   gmm.opt<-mle.opt
   else {
-    bal.opt<-optim(beta.mle, bal.loss, control=list("maxit"=iterations), method = "BFGS", invV = this.invV, gr = bal.gradient)
-
+    bal.init.opt<-optim(beta.init, bal.loss, control=list("maxit"=iterations), method = "BFGS", invV = this.invV, gr = bal.gradient)
+    bal.mle.opt<-optim(beta.mle, bal.loss, control=list("maxit"=iterations), method = "BFGS", invV = this.invV, gr = bal.gradient)
+    if(bal.init.opt$value > bal.mle.opt$value){
+      bal.opt <- bal.mle.opt
+    }
+    else{
+      bal.opt <- bal.init.opt
+    }
+    
     beta.bal<-bal.opt$par
         
     if (bal.only) gmm.opt<-bal.opt
