@@ -1,4 +1,4 @@
-CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
+CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE) {
   probs.min<-10^-6
   pZ <- mean(Z)
   k<-0
@@ -23,7 +23,6 @@ CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
   k<-floor(k+.1)
   XprimeX.inv<-ginv(t(X)%*%X)
   
-  if (is.null(iterations)) iterations<-1000
   n<-length(Tr)
   
   gmm.func <- function(beta.curr, invV = NULL)

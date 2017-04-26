@@ -4,8 +4,8 @@
 \description{
   \code{CBIV} estimates propensity scores for compliance status in an instrumental variables setup such that both covariate balance and prediction of treatment assignment are maximized.   The method, therefore, avoids an iterative process between model fitting and balance checking and implements both simultaneously.}
 \usage{
-	  CBIV(Tr, Z, X, na.action, iterations = 1000, 
-	       standardize = TRUE, method = "over", twostep = TRUE,  ...)
+	  CBIV(Tr, Z, X, iterations = 1000, 
+	       method = "over", twostep = TRUE,  ...)
 }
 \arguments{
   \item{Tr}{A binary treatment variable.}
