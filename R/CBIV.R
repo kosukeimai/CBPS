@@ -1,4 +1,4 @@
-CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE) {
+CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, ...) {
   probs.min<-10^-6
   pZ <- mean(Z)
   k<-0
