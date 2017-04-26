@@ -7,7 +7,7 @@ importFrom("graphics", "abline", "axis", "layout", "mtext", "par",
 importFrom("stats", ".getXlevels", "as.formula", "binomial", "coef",
            "cor", "dnorm", "glm", "is.empty.model", "lm", "model.frame",
            "model.matrix", "model.response", "naprint", "optim",
-           "optimize", "pnorm", "sd", "symnum", "var", "terms")
+           "optimize", "pnorm", "predict", "sd", "symnum", "var", "terms")
 importFrom("utils", "packageDescription")
 export(CBPS, summary.CBPS, CBMSM, npCBPS, CBIV, balance)
 
