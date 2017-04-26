@@ -1,15 +1,68 @@
-#' CBPShigh: high dimensional CBPS method
+#' hdCBPS: high dimensional CBPS method
 #'
-#' Calculate ATT using CBPS method with linear fit
+#' hdCBPS calculates ATT using CBPS method in a high dimensional setting.
+#' @param formula	An object of class formula (or one that can be coerced to that class): a symbolic description of the model to be fitted.
+#' @param data An optional data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables in the model. If not found in data, the variables are taken from environment(formula), typically the environment from which CBPS is called.
+#' @param na.action	A function which indicates what should happen when the data contain NAs. The default is set by the na.action setting of options, and is na.fail if that is unset.
+#' @param iterations An optional parameter for the maximum number of iterations for the optimization. Default is 1000.
+#' @param method Choose among "linear", "binomial", and "possion".
 #' @param x A covariate matrix.
 #' @param y An outcome variable.
 #' @param treat	A vector of treatment assignments.
 #' @return
 #' \item{ATT}{Average treatment effect on the treated.}
 #' \item{s}{Standard Error.}
+#' \item{fitted.values}{The fitted propensity score}
+#' \item{coefficients1}{Coefficients for the treated propensity score}
+#' \item{coefficients0}{Coefficients for the untreated propensity score}
+#' \item{model}{The model frame}
 #' @author Sida Peng
 #' @export
-hdCBPS <- function(x,y,treat, iterations=1000, methd="linear") {
+
+
+# hdCBPS parses the formula object and passes the result to hdCBPS.fit
+hdCBPS <- function(formula, data, na.action, y, iterations=1000, method="linear") {
+  if (missing(data))
+    data <- environment(formula)
+  call <- match.call()
+  family <- binomial()
+
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c("formula", "data", "na.action"), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1L]] <- as.name("model.frame")
+
+  mf <- eval(mf, parent.frame())
+  mt <- attr(mf, "terms")
+  T <- model.response(mf, "any")
+  if (length(dim(T)) == 1L) {
+    nm <- rownames(T)
+    dim(T) <- NULL
+    if (!is.null(nm))
+      names(T) <- nm
+  }
+
+  X <- if (!is.empty.model(mt)) model.matrix(mt, mf)#[,-2]
+  else matrix(, NROW(T), 0L)
+
+  X<-cbind(1,X[,apply(X,2,sd)>0])
+
+  fit <- eval(call("hdCBPS.fit", x = X, y = y, treat = T,  iterations=iterations, methd=method))
+
+  fit$na.action <- attr(mf, "na.action")
+  xlevels <- .getXlevels(mt, mf)
+  fit$data<-data
+  fit$call <- call
+  fit$formula <- formula
+  fit$terms<-mt
+  fit
+}
+
+
+
+
+hdCBPS.fit <- function(x,y,treat, iterations=1000, methd="linear") {
   n = dim(x)[1]
   p = dim(x)[2]
 
@@ -134,7 +187,7 @@ hdCBPS <- function(x,y,treat, iterations=1000, methd="linear") {
     loss1<-as.vector(t(gbar)%*%(gbar))
     out1<-list("loss"=loss1)
     out1
-}
+  }
 
 
   tol = 1e-5
@@ -232,7 +285,17 @@ hdCBPS <- function(x,y,treat, iterations=1000, methd="linear") {
   sigma_0 <- sum((r_yhat0-y0hat)^2/(1-r_yhatb0[treat==0]))/n
   s = sqrt((delta_K+sum(sigma_1/r_yhatb1)+sum(sigma_0/r_yhatb0))/n)/sqrt(n)
 
+  fitted.values = rep(1,n)
+  fitted.values[treat==1] = 1/(w.curr1$W[treat==1]+1)
+  fitted.values[treat==10] = 1-1/(1-w.curr1$W[treat==0])
 
-  result<-list("ATT"=ATT, 's' = s)
-  return(result)
+  output =list()
+  output$ATT = ATT
+  output$s = s
+  output$coefficients1 = beta.1
+  output$coefficients0 = beta.0
+  output$fitted.values = fitted.values
+  output$fitted.y = y
+  output$fitted.x = x
+  output
 }
