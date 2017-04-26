@@ -18,10 +18,6 @@ hdCBPS(formula, data, na.action, y, iterations = 1000, method = "linear")
 \item{iterations}{An optional parameter for the maximum number of iterations for the optimization. Default is 1000.}
 
 \item{method}{Choose among "linear", "binomial", and "possion".}
-
-\item{x}{A covariate matrix.}
-
-\item{treat}{A vector of treatment assignments.}
 }
 \value{
 \item{ATT}{Average treatment effect on the treated.}

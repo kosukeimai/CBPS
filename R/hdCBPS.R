@@ -6,9 +6,7 @@
 #' @param na.action	A function which indicates what should happen when the data contain NAs. The default is set by the na.action setting of options, and is na.fail if that is unset.
 #' @param iterations An optional parameter for the maximum number of iterations for the optimization. Default is 1000.
 #' @param method Choose among "linear", "binomial", and "possion".
-#' @param x A covariate matrix.
 #' @param y An outcome variable.
-#' @param treat	A vector of treatment assignments.
 #' @return
 #' \item{ATT}{Average treatment effect on the treated.}
 #' \item{s}{Standard Error.}
