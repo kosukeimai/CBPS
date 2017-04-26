@@ -1,4 +1,4 @@
-CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
+CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, ...) {
   probs.min<-10^-6
   pZ <- mean(Z)
   k<-0
@@ -23,7 +23,6 @@ CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
   k<-floor(k+.1)
   XprimeX.inv<-ginv(t(X)%*%X)
   
-  if (is.null(iterations)) iterations<-1000
   n<-length(Tr)
   
   gmm.func <- function(beta.curr, invV = NULL)
@@ -290,7 +289,7 @@ CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
   p.hat.c0 <- p.hat.c0/sums
   p.hat.a0 <- p.hat.a0/sums
   p.hat.n0 <- p.hat.n0/sums
-  
+
   beta.init <- c(coef(lm(log(p.hat.c0/(1-p.hat.c0)) ~ -1 + X)), coef(lm(log(p.hat.a0/(1-p.hat.a0)) ~ -1 + X)))
   
   mle.opt<-optim(beta.init, mle.loss, control=list("maxit"=iterations), method = "BFGS", gr = mle.gradient)
