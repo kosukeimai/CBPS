@@ -291,6 +291,8 @@ CBIV <- function(Tr, Z, X, iterations=NULL, method="over", twostep = TRUE) {
   p.hat.a0 <- p.hat.a0/sums
   p.hat.n0 <- p.hat.n0/sums
   
+  print(log(p.hat.c0/(1-p.hat.c0)))
+  print(log(p.hat.a0/(1-p.hat.a0)))
   beta.init <- c(coef(lm(log(p.hat.c0/(1-p.hat.c0)) ~ -1 + X)), coef(lm(log(p.hat.a0/(1-p.hat.a0)) ~ -1 + X)))
   
   mle.opt<-optim(beta.init, mle.loss, control=list("maxit"=iterations), method = "BFGS", gr = mle.gradient)
