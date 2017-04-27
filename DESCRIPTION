@@ -2,11 +2,14 @@ Package: CBPS
 Version: 0.14
 Date: 2017-04-20
 Title: Covariate Balancing Propensity Score
-Author: Christian Fong <christianfong@stanford.edu>, 
-		Marc Ratkovic <ratkovic@princeton.edu>, 
-		Chad Hazlett <chazlett@ucla.edu>, 
-		Xiaolin Yang <xiaoliny@princeton.edu>, 
-		Kosuke Imai <kimai@princeton.edu>
+Authors@R: c(
+  person("Christian", "Fong", , "christianfong@stanford.edu", c("aut")),
+  person("Marc", "Ratkovic", , "ratkovic@princeton.edu", c("aut")),
+  person("Kosuke", "Imai", , "kimai@Princeton.edu", c("aut", "cre")),
+  person("Chad", "Hazlett", , "chazlett@ucla.edu", c("ctb")),
+  person("Xiaolin", "Yang", , "xiaoliny@princeton.edu", c("ctb")),
+  person("Sida", "Peng", , "sp947@cornell.edu", c("ctb"))
+  )
 Maintainer: Christian Fong <christianfong@stanford.edu>
 Depends:
     R (>= 3.3.2),
@@ -28,13 +31,12 @@ Description: Implements the covariate balancing propensity score (CBPS) proposed
     and Imai (2015) <http://imai.princeton.edu/research/files/CBGPS.pdf>, and the
     situation with multiple distinct binary treatments administered simultaneously.
     In the future it will be extended to other settings including the generalization
-    of experimental and instrumental variable estimates. Recently add the optimal
-    CBPS which chooses the optimal balancing function and results in doubly robust
-    and efficient estimator for the treatment effect.
+    of experimental and instrumental variable estimates. Recently we have added the 
+    optimal CBPS which chooses the optimal balancing function and results in doubly 
+    robust and efficient estimator for the treatment effect as well as high dimensional
+    CBPS when a large number of covariates exist. 
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
-Packaged: 2016-09-22 22:14:19 UTC; Christian
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2016-09-22 11:19:13
