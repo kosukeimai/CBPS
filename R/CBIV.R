@@ -381,9 +381,7 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   # All optimization functions need a one-sided or two-sided option
   mle.opt<-optim(beta.init, mle.loss, control=list("maxit"=iterations), method = "BFGS", gr = mle.gradient, twosided = twosided)
   beta.mle<-mle.opt$par
-  print(grad(mle.loss, beta.mle, twosided = twosided))
-  print(mle.gradient(beta.mle, twosided = twosided))
-  
+
   this.invV<-gmm.func(beta.mle, twosided = twosided)$invV
   
   if (score.only)   gmm.opt<-mle.opt
@@ -398,9 +396,6 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
     }
     
     beta.bal<-bal.opt$par
-    print(grad(bal.loss, beta.bal, invV = this.invV, twosided = twosided))
-    print(bal.gradient(beta.bal, invV = this.invV, twosided = twosided))
-    
     
     if (bal.only) gmm.opt<-bal.opt
     else {
@@ -415,8 +410,6 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
         gmm.opt<-gmm.mle.opt
       }    
     }
-    print(grad(gmm.loss, gmm.opt$par, invV = this.invV, twosided = twosided))
-    print(gmm.gradient(gmm.opt$par, invV = this.invV, twosided = twosided))
   }
   
   beta.opt<-matrix(gmm.opt$par,nrow=k)
