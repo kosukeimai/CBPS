@@ -5,7 +5,7 @@
   \code{CBIV} estimates propensity scores for compliance status in an instrumental variables setup such that both covariate balance and prediction of treatment assignment are maximized.   The method, therefore, avoids an iterative process between model fitting and balance checking and implements both simultaneously.}
 \usage{
 	  CBIV(Tr, Z, X, iterations = 1000, 
-	       method = "over", twostep = TRUE,  ...)
+	       method = "over", twostep = TRUE,  twosided = TRUE, ...)
 }
 \arguments{
   \item{Tr}{A binary treatment variable.}
@@ -14,6 +14,7 @@
   \item{iterations}{An optional parameter for the maximum number of iterations for the optimization.  Default is 1000.}
   \item{method}{Choose "over" to fit an over-identified model that combines the propensity score and covariate balancing conditions; choose "exact" to fit a model that only contains the covariate balancing conditions.  Our simulations suggest that "over" dramatically outperforms "exact."}
   \item{twostep}{Default is \code{TRUE} for a two-step GMM estimator, which will run substantially faster than continuous-updating.  Set to \code{FALSE} to use the continuous-updating GMM estimator.}
+   \item{twosided}{Default is \code{TRUE}, which allows for two-sided noncompliance with both always-takers and never-takers.  Set to \code{FALSE} for one-sided noncompliance, which allows only for never-takers.}
   \item{...}{Other parameters to be passed through to \code{optim()}.}
 }
 \details{Fits covariate balancing propensity scores for generalizing local average treatment effect estimates obtained from instrumental variables analysis.}
