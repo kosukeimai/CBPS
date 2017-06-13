@@ -5,6 +5,10 @@
 # Y: the outcome
 # Z: the outcome covariates
 # delta: the coefficients for the post-weighting outcome model
+# tol: tolerance for choosing whether to improve conditioning of the "M" matrix prior to inversion. 
+# Equal to 1/(condition number), i.e. the smallest eigen value divided by the largest.
+# lambda: the amount to be added to the diagonal of M if the condition of the matrix
+# is worse than "tol".
 
 delta.vcov <- function(cbpsfit, Y, Z, delta, tol=10^(-5), lambda=0.01){
   Xtilde <- cbpsfit$Xtilde
