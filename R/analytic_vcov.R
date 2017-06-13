@@ -6,7 +6,7 @@
 # Z: the outcome covariates
 # delta: the coefficients for the post-weighting outcome model
 
-delta.vcov <- function(cbpsfit, Y, Z, delta){
+delta.vcov <- function(cbpsfit, Y, Z, delta, tol=10^(-5), lambda=0.01){
   Xtilde <- cbpsfit$Xtilde
   Ttilde <- cbpsfit$Ttilde
   w <- cbpsfit$weights
@@ -27,8 +27,8 @@ delta.vcov <- function(cbpsfit, Y, Z, delta){
   M11 <- apply(-2/sigmasq.tilde*eps.beta*Xtilde, 2, mean)
   M12 <- mean(-1/sigmasq.tilde^2*eps.beta^2)
   M22 <- apply(as.vector(1/(2*sigmasq.tilde)*w*(1 - 1/sigmasq.tilde*eps.beta^2)*Ttilde)*Xtilde, 2, mean)
-
   M21 <- matrix(0, nrow = K, ncol = K)
+
   for (i in 1:N){
     # Just added a -1 to Sdelta, I think it's correct.  Doesn't actually make a difference in V
     Sdelta <- Sdelta - w[i]*Z[i,]%*%t(Z[i,])/N
@@ -38,11 +38,15 @@ delta.vcov <- function(cbpsfit, Y, Z, delta){
   }
   M <- rbind(c(M11, M12), cbind(M21,M22))
   
+  #Improve conditioning of M if necessary
+  cond.num=svd(M)$d[1]/svd(M)$d[nrow(M)]
+  if (cond.num>(1/tol)){M = M+lambda*diag(rep(1,nrow(M)))}
+  
   s <- as.vector(w*eps.delta)*Z
   mtheta <- cbind(1/sigmasq.tilde*(eps.beta)^2 - 1, 
                   as.vector(w*Ttilde)*Xtilde)
 
-  M.inv <- ginv(M)
+  M.inv = solve(M)
 
   inner <- matrix(0, nrow = P, ncol = P)
   for (i in 1:N){
@@ -50,7 +54,8 @@ delta.vcov <- function(cbpsfit, Y, Z, delta){
     inner <- inner + inner.part%*%t(inner.part)/N
   }
   
-  Sdelta.inv <- ginv(Sdelta)
+  Sdelta.inv = solve(Sdelta)
+  
   V <- Sdelta.inv %*% inner %*% t(Sdelta.inv)/N
   
   return(V)
