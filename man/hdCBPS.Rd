@@ -2,8 +2,11 @@
 % Please edit documentation in R/hdCBPS.R
 \name{hdCBPS}
 \alias{hdCBPS}
+\alias{hdCBPS}
 \title{hdCBPS: high dimensional CBPS method}
 \usage{
+hdCBPS(formula, data, na.action, y, iterations = 1000, method = "linear")
+
 hdCBPS(formula, data, na.action, y, iterations = 1000, method = "linear")
 }
 \arguments{
@@ -18,8 +21,28 @@ hdCBPS(formula, data, na.action, y, iterations = 1000, method = "linear")
 \item{iterations}{An optional parameter for the maximum number of iterations for the optimization. Default is 1000.}
 
 \item{method}{Choose among "linear", "binomial", and "possion".}
+
+\item{formula}{An object of class formula (or one that can be coerced to that class): a symbolic description of the model to be fitted.}
+
+\item{data}{An optional data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables in the model. If not found in data, the variables are taken from environment(formula), typically the environment from which CBPS is called.}
+
+\item{na.action}{A function which indicates what should happen when the data contain NAs. The default is set by the na.action setting of options, and is na.fail if that is unset.}
+
+\item{iterations}{An optional parameter for the maximum number of iterations for the optimization. Default is 1000.}
+
+\item{method}{Choose among "linear", "binomial", and "possion".}
+
+\item{y}{An outcome variable.}
 }
 \value{
+\item{ATT}{Average treatment effect on the treated.}
+\item{ATE}{Average treatment effect.}
+\item{s}{Standard Error.}
+\item{fitted.values}{The fitted propensity score}
+\item{coefficients1}{Coefficients for the treated propensity score}
+\item{coefficients0}{Coefficients for the untreated propensity score}
+\item{model}{The model frame}
+
 \item{ATT}{Average treatment effect on the treated.}
 \item{s}{Standard Error.}
 \item{fitted.values}{The fitted propensity score}
@@ -28,8 +51,12 @@ hdCBPS(formula, data, na.action, y, iterations = 1000, method = "linear")
 \item{model}{The model frame}
 }
 \description{
+hdCBPS calculates ATE using CBPS method in a high dimensional setting.
+
 hdCBPS calculates ATT using CBPS method in a high dimensional setting.
 }
 \author{
+Sida Peng
+
 Sida Peng
 }
