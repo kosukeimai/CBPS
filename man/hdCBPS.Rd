@@ -18,6 +18,8 @@ hdCBPS(formula, data, na.action, y, ATT = 0, iterations = 1000, method = "linear
 
 \item{y}{An outcome variable.}
 
+\item{ATT}{Option to calculate ATT}
+
 \item{iterations}{An optional parameter for the maximum number of iterations for the optimization. Default is 1000.}
 
 \item{method}{Choose among "linear", "binomial", and "possion".}
