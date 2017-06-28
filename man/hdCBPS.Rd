@@ -2,9 +2,11 @@
 % Please edit documentation in R/hdCBPS.R
 \name{hdCBPS}
 \alias{hdCBPS}
+\alias{hdCBPS}
 \title{hdCBPS: high dimensional CBPS method}
 \usage{
-hdCBPS(formula, data, na.action, y, iterations = 1000, method = "linear")
+hdCBPS(formula, data, na.action, y, ATT = 0, iterations = 1000, method = "linear")
+
 }
 \arguments{
 \item{formula}{An object of class formula (or one that can be coerced to that class): a symbolic description of the model to be fitted.}
@@ -15,21 +17,28 @@ hdCBPS(formula, data, na.action, y, iterations = 1000, method = "linear")
 
 \item{y}{An outcome variable.}
 
+\item{ATT}{Option to calculate ATT}
+
 \item{iterations}{An optional parameter for the maximum number of iterations for the optimization. Default is 1000.}
 
 \item{method}{Choose among "linear", "binomial", and "possion".}
+
 }
 \value{
 \item{ATT}{Average treatment effect on the treated.}
+\item{ATE}{Average treatment effect.}
 \item{s}{Standard Error.}
 \item{fitted.values}{The fitted propensity score}
 \item{coefficients1}{Coefficients for the treated propensity score}
 \item{coefficients0}{Coefficients for the untreated propensity score}
 \item{model}{The model frame}
+
 }
 \description{
-hdCBPS calculates ATT using CBPS method in a high dimensional setting.
+hdCBPS calculates ATE using CBPS method in a high dimensional setting.
+
 }
 \author{
 Sida Peng
+
 }
