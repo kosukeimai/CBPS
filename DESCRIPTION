@@ -1,6 +1,6 @@
 Package: CBPS
-Version: 0.14
-Date: 2017-04-20
+Version: 0.15
+Date: 2017-06-13
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
   person("Christian", "Fong", , "christianfong@stanford.edu", c("aut")),

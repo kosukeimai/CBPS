@@ -1,7 +1,7 @@
 # Make sure you are using the branch version of CBPSContinuous,
 # otherwise, you won't have access to Xtilde, Ttilde, etc.
 
-# cbpsfit: a fitted cbps object
+# object: a fitted cbps object
 # Y: the outcome
 # Z: the outcome covariates
 # delta: the coefficients for the post-weighting outcome model
@@ -10,12 +10,17 @@
 # lambda: the amount to be added to the diagonal of M if the condition of the matrix
 # is worse than "tol".
 
-delta.vcov <- function(cbpsfit, Y, Z, delta, tol=10^(-5), lambda=0.01){
-  Xtilde <- cbpsfit$Xtilde
-  Ttilde <- cbpsfit$Ttilde
-  w <- cbpsfit$weights
-  beta.tilde <- cbpsfit$beta.tilde
-  sigmasq.tilde <- cbpsfit$sigmasq.tilde
+vcov_outcome<-function(object, Y, Z, delta, tol=10^(-5), lambda=0.01)
+{
+  UseMethod("vcov.outcome")
+}
+
+vcov_outcome.CBPSContinuous <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
+  Xtilde <- object$Xtilde
+  Ttilde <- object$Ttilde
+  w <- object$weights
+  beta.tilde <- object$beta.tilde
+  sigmasq.tilde <- object$sigmasq.tilde
   
   N <- length(Y)
   K <- ncol(Xtilde)
@@ -64,3 +69,5 @@ delta.vcov <- function(cbpsfit, Y, Z, delta, tol=10^(-5), lambda=0.01){
   
   return(V)
 }
+
+
