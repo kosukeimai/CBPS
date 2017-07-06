@@ -16,7 +16,8 @@ Depends:
     MASS,
     MatchIt,
     nnet,
-    numDeriv
+    numDeriv,
+    glmnet
 Imports:
 Description: Implements the covariate balancing propensity score (CBPS) proposed
     by Imai and Ratkovic (2014) <DOI:10.1111/rssb.12027>. The propensity score is
