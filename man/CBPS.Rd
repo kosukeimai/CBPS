@@ -106,8 +106,8 @@ treat <- cbind(1,X)\%*\%beta + rnorm(n, sd = 5)
 
 treat.effect <- 1
 effect.beta <- rnorm(ncol(X))
-y <- rbinom(n, 1, (1 + exp(mean(-treat.effect*treat - 
-				   X\%*\%effect.beta)))^-1)
+y <- rbinom(n, 1, (1 + exp(-treat.effect*treat - 
+				   X\%*\%effect.beta))^-1)
 
 fit2 <- CBPS(treat ~ X)
 summary(fit2)
