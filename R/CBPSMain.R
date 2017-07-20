@@ -5,7 +5,7 @@
 
 # CBPS parses the formula object and passes the result to CBPS.fit
 CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=TRUE, method="over", twostep=TRUE,
-                 baseline.formula=NULL, diff.formula=NULL, sample.weights=NULL,...) {
+                 sample.weights=NULL, baseline.formula=NULL, diff.formula=NULL,...) {
   if (missing(data)) 
     data <- environment(formula)
   call <- match.call()
@@ -100,7 +100,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
   
   # When you take the svd, this is the identity matrix.  Perhaps
   # we forgot to work this in somewhere
-  XprimeX.inv<-ginv(t(X)%*%X)
+  XprimeX.inv<-ginv(t(sample.weights^.5*X)%*%(sample.weights^.5*X))
   
   # Determine the number of treatments
   if (is.factor(treat)) {
@@ -126,12 +126,12 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
     
     if (no.treats == 3)
     {
-      output<-CBPS.3Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+      output<-CBPS.3Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep, sample.weights=sample.weights)
     }
     
     if (no.treats == 4)
     {
-      output<-CBPS.4Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+      output<-CBPS.4Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep, sample.weights=sample.weights)
     }
     
     # Reverse the svd, centering and scaling
