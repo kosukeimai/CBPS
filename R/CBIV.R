@@ -58,16 +58,16 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
       if (is.null(invV))
       {
         X.1.1<-X*as.vector((pZ/(1 - probs.curr.n) + (1 - pZ)/(1 - probs.curr.a) - 1)*probs.curr.c^2)
-        X.1.2<-X*as.vector((pZ/(probs.curr.c + probs.curr.a) - 1)*probs.curr.a*probs.curr.c)
-        X.1.3<-X*as.vector(probs.curr.c*((probs.curr.c+probs.curr.a)^-1 - 1))
-        X.1.4<-X*as.vector(probs.curr.c^(-1))
-        X.1.5<-X*as.vector(probs.curr.c^(-1))
+        X.1.2<-X*as.vector((pZ/(1 - probs.curr.n) - 1)*probs.curr.a*probs.curr.c)
+        X.1.3<-X*as.vector(probs.curr.c*((1 - probs.curr.n)^-1 - 1))
+        X.1.4<-X*as.vector(-probs.curr.c)
+        X.1.5<-X*as.vector(-probs.curr.c)
         X.1.6<-X*as.vector(probs.curr.c*((probs.curr.c + probs.curr.n)^-1 - 1))
         X.2.2<-X*as.vector((pZ/(1-probs.curr.n) + (1 - pZ)/probs.curr.a - 1)*probs.curr.a^2)
         X.2.3<-X*as.vector(probs.curr.a*((probs.curr.c+probs.curr.a)^-1 - 1))
         X.2.4<-X*as.vector(probs.curr.a*((probs.curr.a)^-1 - 1))
-        X.2.5<-X*as.vector(probs.curr.a^(-1))
-        X.2.6<-X*as.vector(probs.curr.a^(-1))
+        X.2.5<-X*as.vector(-probs.curr.a)
+        X.2.6<-X*as.vector(-probs.curr.a)
         X.3.3<-X*as.vector((pZ*(probs.curr.c + probs.curr.a))^-1 - 1)
         X.3.4<- -X
         X.3.5<- -X
@@ -362,8 +362,9 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   # Get starting point for optim
   # This block needs to be separated for one-sided and two-sided
   if (twosided){
-    beta.n0 <- coef(glm(I(1-Tr) ~ - 1 + X, subset = which(Z == 1)))
-    beta.a0 <- coef(glm(Tr ~ -1 + X, subset = which(Z == 0)))
+    beta.n0 <- coef(glm(I(1-Tr) ~ - 1 + X, family = binomial(logit), subset = which(Z == 1)))
+    beta.a0 <- coef(glm(Tr ~ -1 + X, family = binomial(logit), subset = which(Z == 0)))
+
     p.hat.a0 <- pmin(pmax(exp(X%*%beta.a0)/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
     p.hat.n0 <- pmin(pmax(exp(X%*%beta.n0)/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
     p.hat.c0 <- pmin(pmax(1/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
@@ -373,11 +374,12 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
     p.hat.a0 <- p.hat.a0/sums
     p.hat.n0 <- p.hat.n0/sums
     
-    beta.init <- c(coef(lm(log(p.hat.c0/(1-p.hat.c0)) ~ -1 + X)), coef(lm(log(p.hat.a0/(1-p.hat.a0)) ~ -1 + X)))
+    beta.init <- c(coef(lm(log(p.hat.c0/(p.hat.n0)) ~ -1 + X)), coef(lm(log(p.hat.a0/(p.hat.n0)) ~ -1 + X)))
   }
   else{
     beta.init <- coef(glm(Tr ~ -1 + X, subset = which(Z == 1)))
   }
+
   # All optimization functions need a one-sided or two-sided option
   mle.opt<-optim(beta.init, mle.loss, control=list("maxit"=iterations), method = "BFGS", gr = mle.gradient, twosided = twosided)
   beta.mle<-mle.opt$par
@@ -415,8 +417,7 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   beta.opt<-matrix(gmm.opt$par,nrow=k)
   J.opt<-gmm.loss(beta.opt, this.invV, twosided)
   bal.loss.opt <- bal.loss(beta.opt, invV = this.invV, twosided)
-  fitted.vals <- X%*%beta.opt
-  
+
   class(beta.opt)<-"coef"
   
   if (twosided){
@@ -456,28 +457,32 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
     beta.opt[1]<-beta.opt[1]-sum(x.mean*beta.opt[-1])
   }
   
+  if (method == "exact" & twosided == TRUE){
+    this.invV <- this.invV[(2*ncol(X)+1):ncol(this.invV),(2*ncol(X)+1):ncol(this.invV)]
+  }
+  
   output<-list("coefficients"=beta.opt,"fitted.values"=fitted.values,"weights"=1/fitted.values[,1],
                "deviance"=deviance,"converged"=gmm.opt$conv,"J"=J.opt,"df"=k,
-               "bal"=bal.loss.opt, "x" = X.orig, "z" = Z, "y" = Tr)
+               "bal"=bal.loss.opt, "x" = X.orig, "z" = Z, "y" = Tr, "invSigma" = this.invV)
   class(output)<-"CBIV"
   output
 }
 
-vcov_outcome.CBIV <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
+vcov_outcome.CBIV <- function(object, Y, Ttilde, Ztilde, delta){
   X <- object$x
-  Ztilde <- cbind(object$z, object$x)
-  Ttilde <- Z
+
+  N <- length(Y)
+  K <- ncol(X)
+  P <- ncol(Ttilde)
+  
   w <- object$weights
   beta <- object$coefficients
   Z <- object$z
   Tr <- object$y
+  invSigma <- object$invSigma
   pZ <- mean(object$z)
   
-  N <- length(Y)
-  K <- ncol(Ztilde)
-  P <- ncol(Ttilde)
-  
-  pi.min<-10^-4
+  pi.min<-10^-6
   
   baseline.prob <- (1 + exp(X%*%beta[,1]) + exp(X%*%beta[,2]))^-1
   pi.c<-pmin(pmax(exp(X%*%beta[,1])*baseline.prob,pi.min),1-pi.min)
@@ -488,36 +493,6 @@ vcov_outcome.CBIV <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
   pi.c<-pi.c/sums
   pi.a<-pi.a/sums
   pi.n<-pi.n/sums
-  
-  X.1.1<-X*as.vector((pZ/(1 - pi.n) + (1 - pZ)/(1 - pi.a) - 1)*pi.c^2)
-  X.1.2<-X*as.vector((pZ/(pi.c + pi.a) - 1)*pi.a*pi.c)
-  X.1.3<-X*as.vector(pi.c*((pi.c+pi.a)^-1 - 1))
-  X.1.4<-X*as.vector(pi.c^(-1))
-  X.1.5<-X*as.vector(pi.c^(-1))
-  X.1.6<-X*as.vector(pi.c*((pi.c + pi.n)^-1 - 1))
-  X.2.2<-X*as.vector((pZ/(1-pi.n) + (1 - pZ)/pi.a - 1)*pi.a^2)
-  X.2.3<-X*as.vector(pi.a*((pi.c+pi.a)^-1 - 1))
-  X.2.4<-X*as.vector(pi.a*((pi.a)^-1 - 1))
-  X.2.5<-X*as.vector(pi.a^(-1))
-  X.2.6<-X*as.vector(pi.a^(-1))
-  X.3.3<-X*as.vector((pZ*(pi.c + pi.a))^-1 - 1)
-  X.3.4<- -X
-  X.3.5<- -X
-  X.3.6<- -X
-  X.4.4<-X*as.vector(((1-pZ)*pi.a)^-1 - 1)
-  X.4.5<- -X
-  X.4.6<- -X
-  X.5.5<-X*as.vector((pZ*pi.n)^-1 - 1)
-  X.5.6<- -X
-  X.6.6<-X*as.vector(((1-pZ)*(pi.c + pi.n))^-1 - 1)
-  
-  Sigma<-1/N*rbind(cbind(t(X.1.1)%*%X, t(X.1.2)%*%X, t(X.1.3)%*%X, t(X.1.4)%*%X, t(X.1.5)%*%X, t(X.1.6)%*%X),
-                   cbind(t(X.1.2)%*%X, t(X.2.2)%*%X, t(X.2.3)%*%X, t(X.2.4)%*%X, t(X.2.5)%*%X, t(X.2.6)%*%X),
-                   cbind(t(X.1.3)%*%X, t(X.2.3)%*%X, t(X.3.3)%*%X, t(X.3.4)%*%X, t(X.3.5)%*%X, t(X.3.6)%*%X),
-                   cbind(t(X.1.4)%*%X, t(X.2.4)%*%X, t(X.3.4)%*%X, t(X.4.4)%*%X, t(X.4.5)%*%X, t(X.4.6)%*%X),
-                   cbind(t(X.1.5)%*%X, t(X.2.5)%*%X, t(X.3.5)%*%X, t(X.4.5)%*%X, t(X.5.5)%*%X, t(X.5.6)%*%X),
-                   cbind(t(X.1.6)%*%X, t(X.2.6)%*%X, t(X.3.6)%*%X, t(X.4.6)%*%X, t(X.5.6)%*%X, t(X.6.6)%*%X))
-  invSigma<-ginv(Sigma)
   
   mtheta <- t(as.vector(w*(Y - Ttilde%*%delta))*Ztilde)
   
@@ -533,17 +508,17 @@ vcov_outcome.CBIV <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
   W <- rbind(cbind(diag(P), matrix(0, nrow = P, ncol = ncol(invSigma))), 
              cbind(matrix(0, nrow = nrow(invSigma), ncol = P), invSigma))
 
-  Mdelta <- t(w*Ttilde)%*%Ztilde/N
+  Mdelta <- t(Ztilde)%*%(-w*Ttilde)/N
   
   dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
               as.vector(pi.a/pi.c)*X)
   
   Mbeta <- t(Ztilde*as.vector(Y - Ttilde%*%delta))%*%dw/N
-
+  
   G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
                    t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N),
-             cbind(t(as.vector((Z*Tr/(1-pi.n)^2 + (1-Z)*(1-Tr)/(1-pi.a)^2 + 1)*pi.c*pi.a)*X)%*%X/N,
-                   t(as.vector((Z*Tr*pi.c/(1-pi.n)^2 + (1-Z)*(1-Tr)/(1-pi.a) + pi.a - 1)*pi.a)*X)%*%X/N),
+             cbind(t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N,
+                   t(as.vector((Z*Tr*pi.c/(1-pi.n)^2 + pi.a - 1)*pi.a)*X)%*%X/N),
              cbind(t(as.vector(-Z*Tr*pi.c*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N,
                    t(as.vector(-Z*Tr*pi.a*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N),
              cbind(t(as.vector((1-Z)*Tr*pi.c/((1-pZ)*pi.a))*X)%*%X/N,
@@ -553,12 +528,145 @@ vcov_outcome.CBIV <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
              cbind(t(as.vector(-(1-Z)*(1-Tr)*pi.c*pi.a/((1-pZ)*(1-pi.a)^2))*X)%*%X/N,
                    t(as.vector((1-Z)*(1-Tr)*pi.a/((1-pZ)*(1-pi.a)))*X)%*%X/N))
   
+  Gtilde <- rbind(cbind(Mdelta, Mbeta), cbind(matrix(0, nrow = nrow(G), ncol = P), G))
   
-  Gtilde <- rbind(cbind(Mdelta, Mbeta), cbind(matrix(0, nrow = nrow(G), ncol = K), G))
-
-  outer <- ginv(t(Gtilde)%*%W%*%Gtilde)
+  outer.inv <- t(Gtilde)%*%W%*%Gtilde
+  
+  #cond.num <- svd(outer.inv)$d[1]/svd(outer.inv)$d[nrow(outer.inv)]
+  #if (cond.num>(1/tol)){outer.inv <- outer.inv+lambda*diag(rep(1,nrow(outer.inv)))}
+  
+  outer <- ginv(outer.inv)
   inner <- gtheta%*%t(gtheta)/N
-  V <- outer %*% t(Gtilde) %*% W %*% inner %*%W %*% Gtilde %*% outer
   
-  return(V)
+  V <- outer %*% t(Gtilde) %*% W %*% inner %*% W %*% Gtilde %*% outer
+
+  return(V/N)
+}
+
+wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
+  X <- object$x
+  
+  N <- length(Y)
+  K <- ncol(X)
+  P <- ncol(Ztilde)
+  
+  w <- object$weights
+  beta <- object$coefficients
+  Z <- object$z
+  Tr <- object$y
+  invSigma <- object$invSigma
+  pZ <- mean(object$z)
+  
+  pi.min<-10^-6
+  
+  baseline.prob <- (1 + exp(X%*%beta[,1]) + exp(X%*%beta[,2]))^-1
+  pi.c<-pmin(pmax(exp(X%*%beta[,1])*baseline.prob,pi.min),1-pi.min)
+  pi.a<-pmin(pmax(exp(X%*%beta[,2])*baseline.prob,pi.min),1-pi.min)
+  pi.n<-pmin(pmax(baseline.prob,pi.min),1-pi.min)
+  
+  sums<-pi.c+pi.a+pi.n
+  pi.c<-pi.c/sums
+  pi.a<-pi.a/sums
+  pi.n<-pi.n/sums
+  
+  mtheta <- t(as.vector((w*Y - Ztilde%*%delta))*Ztilde)
+  
+  gbeta <- rbind(t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*(1-Tr)/(1-pi.a) - 1)*pi.c)*X),
+                 t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*Tr/pi.a - 1)*pi.a)*X),
+                 t(as.vector(Z*Tr/(pZ*(pi.c + pi.a)) - 1)*X), 
+                 t(as.vector((1-Z)*Tr/((1-pZ)*pi.a) - 1)*X),
+                 t(as.vector(Z*(1-Tr)/(pZ*pi.n) - 1)*X), 
+                 t(as.vector((1-Z)*(1-Tr)/((1-pZ)*(pi.c + pi.n)) - 1)*X))
+  
+  gtheta <- rbind(mtheta, gbeta)
+  
+  W <- rbind(cbind(diag(P), matrix(0, nrow = P, ncol = ncol(invSigma))), 
+             cbind(matrix(0, nrow = nrow(invSigma), ncol = P), invSigma))
+  
+  Mdelta <- t(-Ztilde)%*%Ztilde/N
+  
+  dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
+              as.vector(pi.a/pi.c)*X)
+
+  Mbeta <- t(Ztilde*as.vector(Y))%*%dw/N
+  
+  G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
+                   t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N),
+             cbind(t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N,
+                   t(as.vector((Z*Tr*pi.c/(1-pi.n)^2 + pi.a - 1)*pi.a)*X)%*%X/N),
+             cbind(t(as.vector(-Z*Tr*pi.c*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N,
+                   t(as.vector(-Z*Tr*pi.a*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N),
+             cbind(t(as.vector((1-Z)*Tr*pi.c/((1-pZ)*pi.a))*X)%*%X/N,
+                   t(as.vector(-(1-Z)*Tr*(1-pi.a)/((1-pZ)*pi.a))*X)%*%X/N),
+             cbind(t(as.vector(Z*(1-Tr)*pi.c/(pZ*pi.n))*X)%*%X/N,
+                   t(as.vector(Z*(1-Tr)*pi.a/(pZ*pi.n))*X)%*%X/N),
+             cbind(t(as.vector(-(1-Z)*(1-Tr)*pi.c*pi.a/((1-pZ)*(1-pi.a)^2))*X)%*%X/N,
+                   t(as.vector((1-Z)*(1-Tr)*pi.a/((1-pZ)*(1-pi.a)))*X)%*%X/N))
+  
+  Gtilde <- rbind(cbind(Mdelta, Mbeta), cbind(matrix(0, nrow = nrow(G), ncol = P), G))
+  
+  outer.inv <- t(Gtilde)%*%W%*%Gtilde
+  outer <- ginv(outer.inv)
+  inner <- gtheta%*%t(gtheta)/N
+  
+  V <- outer %*% t(Gtilde) %*% W %*% inner %*% W %*% Gtilde %*% outer
+  
+  return(V/N)
+}
+
+ht_vcov_outcome.CBIV <- function(object, Y){
+  X <- object$x
+  
+  N <- length(Y)
+    
+  beta <- object$coefficients
+  Z <- object$z
+  Tr <- object$y
+  invSigma <- object$invSigma
+  pZ <- mean(object$z)
+  
+  pi.min<-10^-6
+  
+  baseline.prob <- (1 + exp(X%*%beta[,1]) + exp(X%*%beta[,2]))^-1
+  pi.c<-pmin(pmax(exp(X%*%beta[,1])*baseline.prob,pi.min),1-pi.min)
+  pi.a<-pmin(pmax(exp(X%*%beta[,2])*baseline.prob,pi.min),1-pi.min)
+  pi.n<-pmin(pmax(baseline.prob,pi.min),1-pi.min)
+  
+  sums<-pi.c+pi.a+pi.n
+  pi.c<-pi.c/sums
+  pi.a<-pi.a/sums
+  pi.n<-pi.n/sums
+  
+  gbeta <- rbind(t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*(1-Tr)/(1-pi.a) - 1)*pi.c)*X),
+                 t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*Tr/pi.a - 1)*pi.a)*X),
+                 t(as.vector(Z*Tr/(pZ*(pi.c + pi.a)) - 1)*X), 
+                 t(as.vector((1-Z)*Tr/((1-pZ)*pi.a) - 1)*X),
+                 t(as.vector(Z*(1-Tr)/(pZ*pi.n) - 1)*X), 
+                 t(as.vector((1-Z)*(1-Tr)/((1-pZ)*(pi.c + pi.n)) - 1)*X))
+
+  G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
+                   t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N),
+             cbind(t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N,
+                   t(as.vector((Z*Tr*pi.c/(1-pi.n)^2 + pi.a - 1)*pi.a)*X)%*%X/N),
+             cbind(t(as.vector(-Z*Tr*pi.c*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N,
+                   t(as.vector(-Z*Tr*pi.a*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N),
+             cbind(t(as.vector((1-Z)*Tr*pi.c/((1-pZ)*pi.a))*X)%*%X/N,
+                   t(as.vector(-(1-Z)*Tr*(1-pi.a)/((1-pZ)*pi.a))*X)%*%X/N),
+             cbind(t(as.vector(Z*(1-Tr)*pi.c/(pZ*pi.n))*X)%*%X/N,
+                   t(as.vector(Z*(1-Tr)*pi.a/(pZ*pi.n))*X)%*%X/N),
+             cbind(t(as.vector(-(1-Z)*(1-Tr)*pi.c*pi.a/((1-pZ)*(1-pi.a)^2))*X)%*%X/N,
+                   t(as.vector((1-Z)*(1-Tr)*pi.a/((1-pZ)*(1-pi.a)))*X)%*%X/N))
+  
+  outer.inv <- t(G)%*%invSigma%*%G
+  
+  outer <- ginv(outer.inv)
+  inner <- gbeta%*%t(gbeta)/N
+  
+  U <- outer %*% t(G) %*% invSigma %*% inner %*% invSigma %*% G %*% outer
+  
+  dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
+              as.vector(pi.a/pi.c)*X)
+  V <- apply(as.vector(Y*Z/pZ - Y*(1-Z)/(1-pZ))*dw, 2, mean)
+
+  return(t(V)%*%U%*%V/N)
 }
