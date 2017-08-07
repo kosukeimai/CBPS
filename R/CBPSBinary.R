@@ -1,9 +1,9 @@
 CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, ATT, standardize, twostep, sample.weights, ...){
 
-  # There is probably an X'X missing somewhere that is causing these variance problems.
+	##Initialize data and some options
+	#print("Test version")
 	probs.min<- 1e-6
-
-  treat.orig<-treat
+	treat.orig<-treat
 	treat<-sapply(treat,function(x) ifelse(x==levels(factor(treat))[2],1,0))
 	if(ATT == 2)  treat<-1-treat
   
@@ -12,18 +12,27 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
                  " as the treatment.  Set ATT=2 to find ATT with T=",
                  as.character(levels(factor(treat.orig))[1])," as the treatment"))    
   }
+  
 	if (ATT == 2){
 	  print(paste0("Finding ATT with T=",as.character(levels(factor(treat.orig))[1]),
 	               " as the treatment.  Set ATT=1 to find ATT with T=",
 	               as.character(levels(factor(treat.orig))[2])," as the treatment"))    
 	}
 	
-	##Generates ATT weights.	Called by loss function, etc.
-	ATT.wt.func<-function(beta.curr,X.wt=X){
+	##Note: Sample weights sum to n and n.c and n.t measured wrt sample weigths
+	  sample.weights<-sample.weights/mean(sample.weights)
+  		n<-dim(X)[1]
+		n.c<-sum(sample.weights[treat==0])
+		n.t<-sum(sample.weights[treat==1])
+		
+		
+	##Function for generating ATT weights. Called by loss function, etc.  
+	##Note: Returns unsample weighted ATT weights
+	ATT.wt.func<-function(beta.curr,X.wt=X,sample.weights0=sample.weights){
 		X<-as.matrix(X.wt)
 		n<-dim(X)[1]
-		n.c<-sum(treat==0)
-		n.t<-sum(treat==1)
+		n.c<-sum(sample.weights0[treat==0])
+		n.t<-sum(sample.weights0[treat==1])
 		theta.curr<-as.vector(X%*%beta.curr)
 		probs.curr<-(1+exp(-theta.curr))^-1
 		probs.curr<-pmin(1-probs.min,probs.curr)
@@ -33,9 +42,11 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 		w1
 	}
   
-  
+
+		
   ##The gmm objective function--given a guess of beta, constructs the GMM J statistic.  Used for binary treatments
 	gmm.func<-function(beta.curr,X.gmm=X,ATT.gmm=ATT,invV=NULL,sample.weights0=sample.weights){
+
 		sample.weights<-sample.weights0
 		##Designate a few objects in the function.
 		X<-as.matrix(X.gmm)
@@ -44,6 +55,7 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 		##Designate sample size, number of treated and control observations,
 		##theta.curr, which are used to generate probabilities.
 		##Trim probabilities, and generate weights.
+		##Note: n.c, n.t defined wrt sample weights
 		n<-dim(X)[1]
 		n.c<-sum(sample.weights[treat==0])
 		n.t<-sum(sample.weights[treat==1])
@@ -60,12 +72,12 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 		  
 	  
 		##Generate the vector of mean imbalance by weights.
-		w.curr.del<-1/(n)*t(sample.weights^.5*X)%*%(w.curr)
+		w.curr.del<-1/(n)*t(sample.weights*X)%*%(w.curr)
 		w.curr.del<-as.vector(w.curr.del)
 		w.curr<-as.vector(w.curr)
 
 		##Generate g-bar, as in the paper.
-		gbar<-c( 1/n*t(sample.weights^.5*X)%*%(treat-probs.curr),w.curr.del)
+		gbar<-c( 1/n*t(sample.weights*X)%*%(treat-probs.curr),w.curr.del)
 
 		##Generate the covariance matrix used in the GMM estimate.
 		##Was for the initial version that calculates the analytic variances.
@@ -82,8 +94,8 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 			X.1.1<- sample.weights^.5*X
 		}
 		if (ATT){
-		V<-rbind(1/n*cbind(t(X.1)%*%X.1,t(X.1.1)%*%X.1.1)*n/sum(treat),
-			     1/n*cbind(t(X.1.1)%*%X.1.1*n/sum(treat),t(X.2)%*%X.2*n^2/sum(treat)^2))
+		V<-rbind(1/n*cbind(t(X.1)%*%X.1,t(X.1.1)%*%X.1.1)*n/n.t,
+			     1/n*cbind(t(X.1.1)%*%X.1.1*n/n.t,t(X.2)%*%X.2*n^2/n.t^2))
 		}
 		else{
 		V<-rbind(1/n*cbind(t(X.1)%*%X.1,t(X.1.1)%*%X.1.1),
@@ -100,8 +112,10 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 	
 	gmm.loss<-function(x,...) gmm.func(x,...)$loss
 
-	 	XprimeX.inv<-ginv(t(sample.weights^.5*X)%*%(sample.weights^.5*X))
+	XprimeX.inv<-ginv(t(sample.weights^.5*X)%*%(sample.weights^.5*X))
+
 	##Loss function for balance constraints, returns the squared imbalance along each dimension.
+	##Note zeroes out sample mean imbalance wrt sample weights
 	bal.loss<-function(beta.curr,sample.weights0=sample.weights){
 		sample.weights<-sample.weights0
 		##Generate theta and probabilities.
@@ -116,14 +130,16 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 			w.curr<-(probs.curr-1+treat)^-1
 		X.2<-X
 		##Generate mean imbalance.
-		loss1<-abs(t(w.curr)%*%(sample.weights^.5*X)%*%XprimeX.inv%*%t(sample.weights^.5*X)%*%(w.curr))
+		loss1<-abs(t(w.curr)%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr))
 		loss1
 	}
   
   
-	n<-sum(sample.weights)#length(treat)
-	n.c<-sum(sample.weights[treat==0])
-	n.t<-sum(sample.weights[treat==1])
+  	#Redundant from above; delete
+	#n<-sum(sample.weights)#length(treat)
+	#n.c<-sum(sample.weights[treat==0])
+	#n.t<-sum(sample.weights[treat==1])
+	
 	x.orig<-x<-cbind(as.matrix(X))
 
 	##GLM estimation
@@ -135,6 +151,7 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 	beta.curr<-glm1$coef
 	beta.curr[is.na(beta.curr)]<-0
 
+	##Do quick line search off beta.curr
 	alpha.func<-function(alpha) gmm.loss(beta.curr*alpha)
 	beta.curr<-beta.curr*optimize(alpha.func,interval=c(.8,1.1))$min
 	
@@ -142,17 +159,18 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
 	gmm.init<-beta.curr
 	this.invV<-gmm.func(gmm.init)$invV
   
-
-		opt.bal<-optim(gmm.init, bal.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)
+	##Calculate imbalance minimizing estimates.
+	opt.bal<-optim(gmm.init, bal.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)
 	beta.bal<-opt.bal$par
     
-	if(bal.only) opt1<-opt.bal
-  
-	if(!bal.only)
-	{
+    ##If only doing balance, stop, else GMM
+	if(bal.only) {
+		opt1<-opt.bal
+		}else {
 		
-			gmm.glm.init<-optim(gmm.init, gmm.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)
-			gmm.bal.init<-optim(beta.bal, gmm.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)
+		##Initialize from glm and balance; choose minimum
+		gmm.glm.init<-optim(gmm.init, gmm.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)
+		gmm.bal.init<-optim(beta.bal, gmm.loss, control=list("maxit"=iterations), method="BFGS", hessian=TRUE)
 
 		if(gmm.glm.init$val<gmm.bal.init$val) opt1<-gmm.glm.init else opt1<-gmm.bal.init
 	}
@@ -176,23 +194,24 @@ if (standardize)
 	{
 		if (ATT)
 		{
-			norm1<-sum(treat*n/sum(treat==1))
-			norm2<-sum((1-treat)*n/sum(treat==1)*(treat-probs.opt)/(1-probs.opt))
+			norm1<-sum(treat*n*sample.weights/sum(treat==1))
+			norm2<-sum((1-treat)*n*sample.weights/sum(treat==1)*(treat-probs.opt)/(1-probs.opt))
 		}
 		else
 		{
-			norm1<-sum(treat/probs.opt)
-			norm2<-sum((1-treat)/(1-probs.opt))
+			norm1<-sum(treat/probs.opt*sample.weights)
+			norm2<-sum((1-treat)/(1-probs.opt)*sample.weights)
 		}
-	}
+	
 	
 	if (ATT)
 	{
-		w.opt<-(treat == 1)*n/sum(treat == 1)/norm1 + abs((treat == 0)*n/sum(treat == 1)*((treat - probs.opt)/(1-probs.opt))/norm2)
+		w.opt<-(treat == 1)*n/n.t/norm1*sample.weights + abs((treat == 0)*n/n.t*((treat - probs.opt)/(1-probs.opt))/norm2)*sample.weights
 	}
 	else
 	{		
 		w.opt<-(treat == 1)/probs.opt/norm1 + (treat == 0)/(1-probs.opt)/norm2
+	}
 	}
   
   	twostep<-F
@@ -202,15 +221,15 @@ if (standardize)
 	deviance <- -2*c(sum(treat*log(probs.opt)+(1-treat)*log(1-probs.opt)))
 	nulldeviance <- -2*c(sum(treat*log(mean(treat))+(1-treat)*log(1-mean(treat))))
 
-	XG.1<- -X*(probs.opt)^.5*(1-probs.opt)^.5
-	XW.1<- X*(treat-probs.opt)
+	XG.1<- -X*(probs.opt)^.5*(1-probs.opt)^.5*sample.weights^.5
+	XW.1<- X*(treat-probs.opt)*sample.weights^.5
 	if(ATT==T){
-	  XW.2<-X*(treat-probs.opt)/(1-probs.opt)*n/n.t
-	  XG.2<-X*((1-treat)*probs.opt/(1-probs.opt)*n/n.t)^.5
+	  XW.2<-X*(treat-probs.opt)/(1-probs.opt)*n/n.t*sample.weights^.5
+	  XG.2<-X*((1-treat)*probs.opt/(1-probs.opt)*n/n.t)^.5*sample.weights^.5
 	} 
 	else{
-	  XW.2<- X*(probs.opt-1+treat)^-1
-	  XG.2<- -X*probs.opt^.5*(1-probs.opt)^.5*abs((probs.opt-1+treat)^-1)#*(abs(probs.opt-treat)/(probs.opt*(1-probs.opt)))^.5
+	  XW.2<- X*(probs.opt-1+treat)^-1*sample.weights^.5
+	  XG.2<- -X*probs.opt^.5*(1-probs.opt)^.5*abs((probs.opt-1+treat)^-1)*sample.weights^.5#*(abs(probs.opt-treat)/(probs.opt*(1-probs.opt)))^.5
   }
 	if (twostep){
 	  W<-this.invV
