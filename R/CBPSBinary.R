@@ -194,32 +194,34 @@ if (standardize)
 	{
 		if (ATT)
 		{
-			norm1<-sum(treat*n*sample.weights/sum(treat==1))
-			norm2<-sum((1-treat)*n*sample.weights/sum(treat==1)*(treat-probs.opt)/(1-probs.opt))
+			norm1<-sum(treat*n/sum(treat==1))
+			norm2<-sum((1-treat)*n/sum(treat==1)*(treat-probs.opt)/(1-probs.opt))
 		}
 		else
 		{
-			norm1<-sum(treat/probs.opt*sample.weights)
-			norm2<-sum((1-treat)/(1-probs.opt)*sample.weights)
+			norm1<-sum(treat/probs.opt)
+			norm2<-sum((1-treat)/(1-probs.opt))
 		}
 	
 	
 	if (ATT)
 	{
-		w.opt<-(treat == 1)*n/n.t/norm1*sample.weights + abs((treat == 0)*n/n.t*((treat - probs.opt)/(1-probs.opt))/norm2)*sample.weights
+		w.opt<-(treat == 1)*n/n.t/norm1 + abs((treat == 0)*n/n.t*((treat - probs.opt)/(1-probs.opt))/norm2)
 	}
 	else
 	{		
 		w.opt<-(treat == 1)/probs.opt/norm1 + (treat == 0)/(1-probs.opt)/norm2
 	}
 	}
+	
+	w.opt<-w.opt*sample.weights
   
   	twostep<-F
 	J.opt<-ifelse(twostep, gmm.func(beta.opt, invV = this.invV)$loss, gmm.loss(beta.opt))
   
 	residuals<-treat-probs.opt
-	deviance <- -2*c(sum(treat*log(probs.opt)+(1-treat)*log(1-probs.opt)))
-	nulldeviance <- -2*c(sum(treat*log(mean(treat))+(1-treat)*log(1-mean(treat))))
+	deviance <- -2*c(sum(treat*sample.weights*log(probs.opt)+(1-treat)*sample.weights*log(1-probs.opt)))
+	nulldeviance <- -2*c(sum(treat*sample.weights*log(mean(treat))+(1-treat)*sample.weights*log(1-mean(treat))))
 
 	XG.1<- -X*(probs.opt)^.5*(1-probs.opt)^.5*sample.weights^.5
 	XW.1<- X*(treat-probs.opt)*sample.weights^.5
@@ -243,7 +245,7 @@ if (standardize)
 	vcov<-ginv(G%*%W%*%t(G))%*%G%*%W%*%Omega%*%W%*%t(G)%*%ginv(G%*%W%*%t(G))
 
 
-	output<-list("coefficients"=matrix(beta.opt, ncol=1),"fitted.values"=probs.opt,"deviance"=deviance,"weights"=w.opt*sample.weights,
+	output<-list("coefficients"=matrix(beta.opt, ncol=1),"fitted.values"=probs.opt,"deviance"=deviance,"weights"=w.opt,
 				 "y"=treat,"x"=X,"converged"=opt1$conv,"J"=J.opt,"var"=vcov, 
 				 "mle.J"=ifelse(twostep, gmm.func(glm1$coef, invV = this.invV)$loss, gmm.loss(glm1$coef)))
 
