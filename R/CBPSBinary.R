@@ -310,8 +310,8 @@ vcov_outcome.CBPS<-function(object,Y,Z=NULL,delta=NULL,tol=10^-5,lambda=0.01){
 	}
 
 	M<-t(gtilde)%*%gtilde
-	   cond.num=svd(M)$d[1]/svd(M)$d[nrow(M)]
-	   if (cond.num>(1/tol)){M = M+lambda*diag(rep(1,nrow(M)))}
+	  cond.num=svd(M)$d[1]/svd(M)$d[nrow(M)]
+	  if (cond.num>(1/tol)){M = M+lambda*diag(rep(1,nrow(M)))}
 
 	#Variance estimates
 	V<-solve(t(G)%*%solve(M)%*%G)
