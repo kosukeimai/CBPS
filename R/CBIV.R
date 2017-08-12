@@ -557,6 +557,14 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   invSigma <- object$invSigma
   pZ <- mean(object$z)
   
+  Zind <- which(apply(Ztilde, 2, function(u) all(u == Z)))
+  Intind <- which(apply(Ztilde, 2, function(u) all(u == 1)))
+  Xtilde <- Ztilde[,-c(Zind,Intind),drop=FALSE]
+  deltaXtilde <- delta[-c(Zind,Intind)]
+  if (length(Xtilde) > 0){
+    Ztilde[,-c(Zind,Intind)] <- Xtilde*w
+  }
+
   pi.min<-10^-6
   
   baseline.prob <- (1 + exp(X%*%beta[,1]) + exp(X%*%beta[,2]))^-1
@@ -588,7 +596,15 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
               as.vector(pi.a/pi.c)*X)
 
-  Mbeta <- t(Ztilde*as.vector(Y))%*%dw/N
+  Mbeta <- matrix(0, nrow = P, ncol = 2*K)
+  Mbeta[Intind,] <- t(as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N
+  Mbeta[Zind,] <- t(Z*(Y - Xtilde%*%deltaXtilde))%*%dw/N
+  if (length(Xtilde) > 0){
+    Mbeta[-c(Intind,Zind),] <- t(Xtilde*as.vector(w*Y - Ztilde%*%delta) + 
+                                 w*Xtilde*as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N   
+  }
+
+  #Mbeta <- (t(Ztilde*as.vector(Y))%*%dw)/N
   
   G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
                    t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N),
