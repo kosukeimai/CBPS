@@ -564,7 +564,7 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   if (length(Xtilde) > 0){
     Ztilde[,-c(Zind,Intind)] <- Xtilde*w
   }
-
+  
   pi.min<-10^-6
   
   baseline.prob <- (1 + exp(X%*%beta[,1]) + exp(X%*%beta[,2]))^-1
