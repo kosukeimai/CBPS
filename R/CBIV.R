@@ -592,7 +592,7 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
              cbind(matrix(0, nrow = nrow(invSigma), ncol = P), invSigma))
   
   Mdelta <- t(-Ztilde)%*%Ztilde/N
-  
+
   dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
               as.vector(pi.a/pi.c)*X)
 
@@ -603,7 +603,7 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
     Mbeta[-c(Intind,Zind),] <- t(Xtilde*as.vector(w*Y - Ztilde%*%delta) + 
                                  w*Xtilde*as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N   
   }
-
+  
   #Mbeta <- (t(Ztilde*as.vector(Y))%*%dw)/N
   
   G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
