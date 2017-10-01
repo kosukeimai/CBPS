@@ -12,7 +12,7 @@
 
 vcov_outcome<-function(object, Y, Z, delta, tol=10^(-5), lambda=0.01)
 {
-  UseMethod("vcov.outcome")
+  UseMethod("vcov_outcome")
 }
 
 vcov_outcome.CBPSContinuous <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
