@@ -242,12 +242,12 @@ vcov_outcome.CBPS<-function(object,Y,Z=NULL,delta=NULL,tol=10^-5,lambda=0.01){
 #delta: Coefficients from regressing Y on Z
 #tol = 10^-5: The tolerance for choosing whether to condition M prior to inversion.
 #lambda = 0.01: The amount to be added to the diagonal of M if the 
-#condition matrix is worse than tol.  More on this below.
+#condition matrix is worse than tol. More on this below.
 	##Align objects with rest of package	
 	y<-Y
 	obj<-object
 	
-	method<-cb1$method
+	method<-obj$method
 	##Gather model components form obj
 	treat<-obj$y
 	if(is.null(Z)) {
@@ -278,7 +278,7 @@ vcov_outcome.CBPS<-function(object,Y,Z=NULL,delta=NULL,tol=10^-5,lambda=0.01){
 	wts.sq<-wts^2
 
 	##Point estimates
-	ests<-lm(y~Xt-1,w=abs(wts))
+	ests<-lm(y~Xt-1,weights=abs(wts))
 	errs<-ests$residuals
 
 	##Don't need
@@ -310,8 +310,8 @@ vcov_outcome.CBPS<-function(object,Y,Z=NULL,delta=NULL,tol=10^-5,lambda=0.01){
 	}
 
 	M<-t(gtilde)%*%gtilde
-	   cond.num=svd(M)$d[1]/svd(M)$d[nrow(M)]
-	   if (cond.num>(1/tol)){M = M+lambda*diag(rep(1,nrow(M)))}
+	cond.num=svd(M)$d[1]/svd(M)$d[nrow(M)]
+	if (cond.num>(1/tol)){M = M+lambda*diag(rep(1,nrow(M)))}
 
 	#Variance estimates
 	V<-solve(t(G)%*%solve(M)%*%G)
