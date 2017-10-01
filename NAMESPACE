@@ -10,7 +10,8 @@ importFrom("stats", ".getXlevels", "as.formula", "binomial", "coef",
            "model.matrix", "model.response", "naprint", "optim",
            "optimize", "pnorm", "predict", "sd", "symnum", "var", "terms")
 importFrom("utils", "packageDescription")
-export(CBPS, summary.CBPS, CBMSM, npCBPS, hdCBPS, CBIV, balance)
+export(CBPS, summary.CBPS, CBMSM, npCBPS, hdCBPS, CBIV, balance, vcov_outcome)
+
 
 S3method(summary, CBPS)
 S3method(print, CBPS)
@@ -19,6 +20,7 @@ S3method(plot, CBPS)
 S3method(balance, CBPS)
 S3method(plot, CBPSContinuous)
 S3method(balance, CBPSContinuous)
+S3method(vcov_outcome, CBPSContinuous)
 S3method(plot,CBMSM)
 S3method(balance, CBMSM)
 S3method(plot, npCBPS)

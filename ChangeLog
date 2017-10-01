@@ -12,3 +12,4 @@ version date      description
 0.12	11/01/16  Fixes bug that affected the weight for the first observation in the continuous case.  Fixed bug that caused npCBPS to ignore choice of corprior.  Added SVD to CBPS Optimal.
 0.13 	12/27/16  Fixes bug for CBPSOptimal, changes balance conditions for CBPS Continuous, and fixes issues with covariance matrix of coefficients.
 0.14	04/20/17  Changed behavior for over-identified continuous CBPS when weighting matrix is singular.
+0.15    06/13/17  Added analytic covariances for outcome models.

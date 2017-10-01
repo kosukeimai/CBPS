@@ -49,7 +49,11 @@ For cross-sectional data, the method can take continuous treatments and treatmen
   \item{sigmasq}{The sigma-squared value, for continuous treatments only}
   \item{J}{The J-statistic at convergence}
   \item{mle.J}{The J-statistic for the parameters from maximum likelihood estimation}
-  \item{var}{The covariance matrix, evaluated numerically from \code{optim()}.}
+  \item{var}{The covariance matrix for the coefficients.}
+  \item{Ttilde}{For internal use only.}
+  \item{Xtilde}{For internal use only.}
+  \item{beta.tilde}{For internal use only.}
+  \item{simgasq.tilde}{For internal use only.}
  }
 \references{Imai, Kosuke and Marc Ratkovic.  2014. ``Covariate Balancing Propensity Score.'' Journal of the Royal Statistical Society, Series B (Statistical Methodology). \url{http://imai.princeton.edu/research/CBPS.html}			\cr
 			Fong, Christian, Chad Hazlett, and Kosuke Imai.  ``Parametric and Nonparametric Covariate Balancing Propensity Score for General Treatment Regimes.''  Unpublished Manuscript. \url{http://imai.princeton.edu/research/files/CBGPS.pdf}	\cr

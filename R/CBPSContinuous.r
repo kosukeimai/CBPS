@@ -283,10 +283,11 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   vcov <- ginv(t(X)%*%X)%*%t(X)%*%(Xtilde%*%vcov.tilde%*%t(Xtilde)*var(treat))%*%X%*%ginv(t(X)%*%X)
   
   class(beta.opt)<-"coef"
-  
   output<-list("coefficients"=beta.opt, "sigmasq"=sigmasq,
                "fitted.values"=dnorm(Ttilde,Xtilde%*%beta.tilde,sigmasq.tilde),"deviance"=deviance,
-               "weights"=w.opt,"y"=treat,"x"=X,"converged"=opt1$conv,"J"=J.opt,"var"=vcov, "mle.J"=mle.J)
+               "weights"=w.opt,"y"=treat,"x"=X, "Ttilde" = Ttilde,
+               "Xtilde"=Xtilde, "beta.tilde" = beta.tilde, "sigmasq.tilde" = sigmasq.tilde,
+               "converged"=opt1$conv,"J"=J.opt,"var"=vcov, "mle.J"=mle.J)
   
   class(output)<- c("CBPSContinuous","CBPS")
   output
