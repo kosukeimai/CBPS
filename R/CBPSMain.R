@@ -210,7 +210,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
   } else if (is.numeric(treat)) {
     # Warn if it seems like the user meant to input a categorical treatment
     if (length(unique(treat)) <= 4) warning("Treatment vector is numeric.  Interpreting as a continuous treatment.  To solve for a binary or multi-valued treatment, make treat a factor.")
-    output<-CBPS.Continuous(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+    output<-CBPS.Continuous(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep, sample.weights=sample.weights)
     
     # Reverse svd, centering, and scaling
     d.inv<- svd1$d

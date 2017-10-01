@@ -1,6 +1,9 @@
-CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize, twostep, ...)
+CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize, twostep, sample.weights, ...)
 {
   probs.min<-1e-6
+  
+  sample.weights<-sample.weights/mean(sample.weights)
+  XprimeX.inv<-ginv(t(sample.weights^.5*X)%*%(sample.weights^.5*X))
   
   ##The gmm objective function--given a guess of beta, constructs the GMM J statistic.
   gmm.func<-function(params.curr,invV=NULL){
@@ -16,24 +19,24 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
     w.curr<-Ttilde*exp(stabilizers - probs.curr)
     
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(Xtilde)%*%w.curr
+    w.curr.del<-1/n*t(sample.weights*Xtilde)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     ##Generate g-bar, as in the paper.
-    gbar<-c(1/n*t(Xtilde)%*%(Ttilde-Xtilde%*%beta.curr)/sigmasq,
+    gbar<-c(1/n*t(sample.weights*Xtilde)%*%(Ttilde-Xtilde%*%beta.curr)/sigmasq,
             w.curr.del,
-            1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
+            1/n*t(sample.weights)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
     
     ##Generate the covariance matrix used in the GMM estimate.
     if (is.null(invV))
     {
-      Xtilde.1.1<-1/sigmasq*t(Xtilde)%*%(Xtilde)
-      Xtilde.1.2<-t(Xtilde)%*%(Xtilde)/sigmasq
-      Xtilde.1.3<-t(Xtilde)%*%n.identity.vec*0
-      Xtilde.2.2<-t(Xtilde)%*%sweep(Xtilde,MARGIN=1,as.vector(exp((Xtilde%*%beta.curr)^2/sigmasq + log(sigmasq + (Xtilde%*%beta.curr)^2))),'*')
-      Xtilde.2.3<-t(Xtilde)%*%(-Xtilde%*%beta.curr)*-2/sigmasq
-      Xtilde.3.3<-t(n.identity.vec)%*%n.identity.vec*2
+      Xtilde.1.1<-1/sigmasq*t(sample.weights*Xtilde)%*%(Xtilde)
+      Xtilde.1.2<-t(sample.weights*Xtilde)%*%(Xtilde)/sigmasq
+      Xtilde.1.3<-t(sample.weights*Xtilde)%*%n.identity.vec*0
+      Xtilde.2.2<-t(sample.weights*Xtilde)%*%sweep(Xtilde,MARGIN=1,as.vector(exp((Xtilde%*%beta.curr)^2/sigmasq + log(sigmasq + (Xtilde%*%beta.curr)^2))),'*')
+      Xtilde.2.3<-t(sample.weights*Xtilde)%*%(-Xtilde%*%beta.curr)*-2/sigmasq
+      Xtilde.3.3<-t(sample.weights)%*%n.identity.vec*2
       
       V<-rbind(1/n*cbind(Xtilde.1.1,Xtilde.1.2,Xtilde.1.3),
                1/n*cbind(Xtilde.1.2,Xtilde.2.2,Xtilde.2.3),
@@ -63,12 +66,12 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
     w.curr<-Ttilde*exp(stabilizers - probs.curr)
     
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(Xtilde)%*%w.curr
+    w.curr.del<-1/n*t(sample.weights*Xtilde)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     gbar <- c(w.curr.del,
-              1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
+              1/n*t(sample.weights)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
     
     ##Generate mean imbalance.
     loss1<-t(gbar)%*%diag(k+1)%*%(gbar)
@@ -92,21 +95,21 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
     w.curr<-Ttilde*exp(stabilizers - probs.curr)
     
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(Xtilde)%*%w.curr
+    w.curr.del<-1/n*t(sample.weights*Xtilde)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     ##Generate g-bar, as in the paper.
-    gbar<-c(1/n*t(Xtilde)%*%(Ttilde-Xtilde%*%beta.curr)/sigmasq,
+    gbar<-c(1/n*t(sample.weights*Xtilde)%*%(Ttilde-Xtilde%*%beta.curr)/sigmasq,
             w.curr.del,
-            1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
+            1/n*t(sample.weights)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
     
-    dgbar.1.1<-t(-Xtilde)%*%Xtilde/sigmasq
-    dgbar.1.2<-matrix(-(Ttilde - Xtilde%*%beta.curr)/(sigmasq^2), nrow = 1)%*%Xtilde
-    dgbar.2.1<-sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*')%*%Xtilde
+    dgbar.1.1<-t(-sample.weights*Xtilde)%*%Xtilde/sigmasq
+    dgbar.1.2<-matrix(-sample.weights*(Ttilde - Xtilde%*%beta.curr)/(sigmasq^2), nrow = 1)%*%Xtilde
+    dgbar.2.1<-sweep(t(sample.weights*Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*')%*%Xtilde
     dgbar.2.2<-matrix(w.curr*(1/(2*sigmasq) - (Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2)), nrow = 1)%*%Xtilde
-    dgbar.3.1<-t(Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.curr)/sigmasq, ncol = 1)
-    dgbar.3.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.curr)^2/(sigmasq^2))
+    dgbar.3.1<-t(sample.weights*Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.curr)/sigmasq, ncol = 1)
+    dgbar.3.2<-t(sample.weights)%*%(-(Ttilde - Xtilde%*%beta.curr)^2/(sigmasq^2))
     
     dgbar<-1/n*cbind(rbind(dgbar.1.1, dgbar.1.2*sigmasq),
                      rbind(dgbar.2.1, dgbar.2.2*sigmasq),
@@ -130,18 +133,18 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
     w.curr<-Ttilde*exp(stabilizers - probs.curr)
     
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(Xtilde)%*%w.curr
+    w.curr.del<-1/n*t(sample.weights*Xtilde)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     ##Generate g-bar, as in the paper.
     gbar<-c(w.curr.del,
-            1/n*t(n.identity.vec)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
+            1/n*t(sample.weights)%*%((Ttilde - Xtilde%*%beta.curr)^2/sigmasq - 1))
     
-    dgbar.2.1<-sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*')%*%Xtilde
+    dgbar.2.1<-sweep(t(sample.weights*Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.curr)/sigmasq*w.curr,'*')%*%Xtilde
     dgbar.2.2<-matrix(w.curr*(1/(2*sigmasq) - (Ttilde - Xtilde%*%beta.curr)^2/(2*sigmasq^2)), nrow = 1)%*%Xtilde
-    dgbar.3.1<-t(Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.curr)/sigmasq, ncol = 1)
-    dgbar.3.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.curr)^2/(sigmasq^2))
+    dgbar.3.1<-t(sample.weights*Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.curr)/sigmasq, ncol = 1)
+    dgbar.3.2<-t(sample.weights)%*%(-(Ttilde - Xtilde%*%beta.curr)^2/(sigmasq^2))
     dgbar<-1/n*cbind(rbind(dgbar.2.1, dgbar.2.2*sigmasq),
                      rbind(dgbar.3.1, dgbar.3.2*sigmasq))
     
@@ -152,13 +155,13 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   n<-length(treat)
   x.orig<-x<-cbind(as.matrix(X))
   int.ind <- which(apply(X, 2, sd) <= 10^-10)
-  Xtilde<-cbind(X[,int.ind], scale(X[,-int.ind]%*%solve(chol(var(X[,-int.ind]))), center = TRUE, scale = FALSE))
-  XtildeprimeXtilde.inv<-ginv(t(Xtilde)%*%Xtilde)
-  Ttilde<-scale(treat)
+  Xtilde<-cbind(X[,int.ind], scale(sample.weights*X[,-int.ind]%*%solve(chol(var(sample.weights*X[,-int.ind]))), center = TRUE, scale = FALSE))
+  XtildeprimeXtilde.inv<-ginv(t(sample.weights*Xtilde)%*%Xtilde)
+  Ttilde<-scale(sample.weights*treat)
   n.identity.vec<-matrix(1,nrow=n,ncol=1)
   
   ##Run linear regression
-  lm1<-lm(Ttilde ~ -1 + Xtilde)
+  lm1<-lm(Ttilde ~ -1 + Xtilde, weights = sample.weights)
   mcoef<-coef(lm1)
   mcoef[is.na(mcoef)]<-0
   sigmasq<-mean((Ttilde - Xtilde%*%mcoef)^2)
@@ -239,22 +242,22 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   
   ##Generate weights
   w.opt<-exp(stabilizers - probs.opt)
-  if(standardize) w.opt<-w.opt/sum(w.opt)
+  if(standardize) w.opt<-w.opt/sum(w.opt*sample.weights)
   
   #How are residuals now defined?
   residuals<- Ttilde - Xtilde%*%beta.opt
   deviance <- -2*sum(probs.opt)
   
-  XG.1.1<-t(-Xtilde)%*%Xtilde/sigmasq
-  XG.2.1<-t(Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.opt)/sigmasq, ncol = 1)
-  XG.3.1<-sweep(t(Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.opt)/sigmasq*Ttilde*w.opt,'*')%*%Xtilde
-  XG.1.2<-t(-Xtilde)%*%(Ttilde - Xtilde%*%beta.opt)/(sigmasq^2)
-  XG.2.2<-t(n.identity.vec)%*%(-(Ttilde - Xtilde%*%beta.opt)^2/(sigmasq^2))
-  XG.3.2<-matrix(-Ttilde*w.opt*((Ttilde - Xtilde%*%beta.opt)^2/(2*sigmasq^2) - 1/(2*sigmasq)), nrow = 1)%*%Xtilde
+  XG.1.1<-t(-sample.weights*Xtilde)%*%Xtilde/sigmasq
+  XG.2.1<-t(sample.weights*Xtilde)%*%matrix(-2*(Ttilde - Xtilde%*%beta.opt)/sigmasq, ncol = 1)
+  XG.3.1<-sweep(t(sample.weights*Xtilde), MARGIN=2, -(Ttilde-Xtilde%*%beta.opt)/sigmasq*Ttilde*w.opt,'*')%*%Xtilde
+  XG.1.2<-t(-sample.weights*Xtilde)%*%(Ttilde - Xtilde%*%beta.opt)/(sigmasq^2)
+  XG.2.2<-t(sample.weights)%*%(-(Ttilde - Xtilde%*%beta.opt)^2/(sigmasq^2))
+  XG.3.2<-matrix(-Ttilde*sample.weights*w.opt*((Ttilde - Xtilde%*%beta.opt)^2/(2*sigmasq^2) - 1/(2*sigmasq)), nrow = 1)%*%Xtilde
   
-  XW.1<-Xtilde*as.vector((Ttilde-Xtilde%*%beta.opt)/sigmasq)
-  XW.2<-as.vector((Ttilde - Xtilde%*%beta.opt)^2/sigmasq - 1)
-  XW.3<-Xtilde*as.vector(Ttilde*w.opt)
+  XW.1<-Xtilde*as.vector((Ttilde-Xtilde%*%beta.opt)/sigmasq*sample.weights^.5)
+  XW.2<-as.vector((Ttilde - Xtilde%*%beta.opt)^2/sigmasq - 1)*sample.weights^.5
+  XW.3<-Xtilde*as.vector(Ttilde*w.opt*sample.weights)
   
   if (bal.only){
     W <- diag(k+1)
@@ -275,17 +278,17 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   vcov.tilde<-(ginv(t(G)%*%W%*%G)%*%t(G)%*%W%*%Omega%*%W%*%G%*%ginv(t(G)%*%W%*%G))[1:k,1:k]
   # Reverse the centering and Choleski decomposition from using Ttilde and Xtilde
   beta.tilde<-beta.opt
-  beta.opt<-ginv(t(X)%*%X)%*%t(X)%*%(Xtilde%*%beta.tilde*sd(treat) + mean(treat))
+  beta.opt<-ginv(t(X)%*%X)%*%t(X)%*%(Xtilde%*%beta.tilde*sd(sample.weights*treat) + mean(sample.weights*treat))
   
   sigmasq.tilde<-sigmasq
-  sigmasq<-sigmasq.tilde*var(treat)
+  sigmasq<-sigmasq.tilde*var(sample.weights*treat)
   
-  vcov <- ginv(t(X)%*%X)%*%t(X)%*%(Xtilde%*%vcov.tilde%*%t(Xtilde)*var(treat))%*%X%*%ginv(t(X)%*%X)
+  vcov <- ginv(t(X)%*%X)%*%t(X)%*%(Xtilde%*%vcov.tilde%*%t(Xtilde)*var(sample.weights*treat))%*%X%*%ginv(t(X)%*%X)
   
   class(beta.opt)<-"coef"
   output<-list("coefficients"=beta.opt, "sigmasq"=sigmasq,
                "fitted.values"=dnorm(Ttilde,Xtilde%*%beta.tilde,sigmasq.tilde),"deviance"=deviance,
-               "weights"=w.opt,"y"=treat,"x"=X, "Ttilde" = Ttilde,
+               "weights"=w.opt*sample.weights,"y"=treat,"x"=X, "Ttilde" = Ttilde,
                "Xtilde"=Xtilde, "beta.tilde" = beta.tilde, "sigmasq.tilde" = sigmasq.tilde,
                "converged"=opt1$conv,"J"=J.opt,"var"=vcov, "mle.J"=mle.J)
   
