@@ -4,7 +4,7 @@
 \alias{summary.CBPS}
 \title{Summarizing Covariate Balancing Propensity Score Estimation}
 \usage{
-summary.CBPS(object, ...)
+\method{summary}{CBPS}(object, ...)
 }
 \arguments{
 \item{object}{an object of class \dQuote{CBPS}, usually, a result of a call
