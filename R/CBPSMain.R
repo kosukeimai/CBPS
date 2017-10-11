@@ -4,6 +4,184 @@
 #-----------------------------------------------------------------
 
 # CBPS parses the formula object and passes the result to CBPS.fit
+
+
+#' Covariate Balancing Propensity Score (CBPS) Estimation
+#' 
+#' \code{CBPS} estimates propensity scores such that both covariate balance and
+#' prediction of treatment assignment are maximized.  The method, therefore,
+#' avoids an iterative process between model fitting and balance checking and
+#' implements both simultaneously. For cross-sectional data, the method can
+#' take continuous treatments and treatments with a control (baseline)
+#' condition and either 1, 2, or 3 distinct treatment conditions.
+#' 
+#' Fits covariate balancing propensity scores.
+#' 
+#' @aliases CBPS CBPS.fit print.CBPS
+#' @param formula An object of class \code{formula} (or one that can be coerced
+#' to that class): a symbolic description of the model to be fitted.
+#' @param data An optional data frame, list or environment (or object coercible
+#' by as.data.frame to a data frame) containing the variables in the model. If
+#' not found in data, the variables are taken from \code{environment(formula)},
+#' typically the environment from which \code{CBPS} is called.
+#' @param na.action A function which indicates what should happen when the data
+#' contain NAs. The default is set by the na.action setting of options, and is
+#' na.fail if that is unset.
+#' @param ATT Default is 1, which finds the average treatment effect on the
+#' treated interpreting the second level of the treatment factor as the
+#' treatment.  Set to 2 to find the ATT interpreting the first level of the
+#' treatment factor as the treatment.  Set to 0 to find the average treatment
+#' effect. For non-binary treatments, only the ATE is available.
+#' @param iterations An optional parameter for the maximum number of iterations
+#' for the optimization.  Default is 1000.
+#' @param standardize Default is \code{TRUE}, which normalizes weights to sum
+#' to 1 within each treatment group.  For continuous treatments, normalizes
+#' weights to sum up to 1 for the entire sample.  Set to \code{FALSE} to return
+#' Horvitz-Thompson weights.
+#' @param method Choose "over" to fit an over-identified model that combines
+#' the propensity score and covariate balancing conditions; choose "exact" to
+#' fit a model that only contains the covariate balancing conditions.
+#' @param twostep Default is \code{TRUE} for a two-step estimator, which will
+#' run substantially faster than continuous-updating.  Set to \code{FALSE} to
+#' use the continuous-updating estimator described by Imai and Ratkovic (2014).
+#' @param treat A vector of treatment assignments.  Binary or multi-valued
+#' treatments should be factors.  Continuous treatments should be numeric.
+#' @param X A covariate matrix.
+#' @param sample.weights Survey sampling weights for the observations, if
+#' applicable.  When left NULL, defaults to a sampling weight of 1 for each
+#' observation.
+#' @param baseline.formula Used only to fit iCBPS (see Fan et al). Currently
+#' only works with binary treatments.  A formula specifying the balancing
+#' covariates in the baseline outcome model, i.e., E(Y(0)|X).
+#' @param diff.formula Used only to fit iCBPS (see Fan et al).  Currently only
+#' works with binary treatments.  A formula specifying the balancing covariates
+#' in the difference between the treatment and baseline outcome model, i.e.,
+#' E(Y(1)-Y(0)|X).
+#' @param baselineX Similar to \code{baseline.formula}, but in matrix form.
+#' @param diffX Similar to \code{diff.formula}, but in matrix form.
+#' @param ... Other parameters to be passed through to \code{optim()}.
+#' @return \item{fitted.values}{The fitted propensity score}
+#' \item{deviance}{Minus twice the log-likelihood of the CBPS fit}
+#' \item{weights}{The optimal weights.  Let \eqn{\pi_i = f(T_i | X_i)}{\pi_i =
+#' f(T_i | X_i)}.  For binary ATE, these are given by \eqn{\frac{T_i}{\pi_i} +
+#' \frac{(1 - T_i)}{(1 - \pi_i)}}{T_i/\pi_i + (1 - T_i)/(1 - \pi_i)}.  For
+#' binary ATT, these are given by \eqn{\frac{n}{n_t} * \frac{T_i - \pi_i}{1 -
+#' \pi_i}}{n/n_t * (T_i - \pi_i)/(1 - \pi_i)}.  For multi_valued treatments,
+#' these are given by \eqn{\sum_{j=0}^{J-1} T_{i,j} /
+#' \pi_{i,j}}{\sum_{j=0}^{J-1} T_i,j / \pi_i,j}.  For continuous treatments,
+#' these are given by \eqn{\frac{f(T_i)}{f(T_i | X_i)}}{f(T_i) / f(T_i | X_i)
+#' }.  These expressions for weights are all before standardization (i.e. with
+#' standardize=\code{FALSE}).  Standardization will make weights sum to 1
+#' within each treatment group.  For continuous treatment, standardization will
+#' make all weights sum to 1.  If sampling weights are used, the weight for
+#' each observation is multiplied by the survey sampling weight.} \item{y}{The
+#' treatment vector used} \item{x}{The covariate matrix} \item{model}{The model
+#' frame} \item{converged}{Convergence value.  Returned from the call to
+#' \code{optim()}.} \item{call}{The matched call} \item{formula}{The formula
+#' supplied} \item{data}{The data argument} \item{coefficients}{A named vector
+#' of coefficients} \item{sigmasq}{The sigma-squared value, for continuous
+#' treatments only} \item{J}{The J-statistic at convergence} \item{mle.J}{The
+#' J-statistic for the parameters from maximum likelihood estimation}
+#' \item{var}{The covariance matrix for the coefficients.} \item{Ttilde}{For
+#' internal use only.} \item{Xtilde}{For internal use only.}
+#' \item{beta.tilde}{For internal use only.} \item{simgasq.tilde}{For internal
+#' use only.}
+#' @author Christian Fong, Marc Ratkovic, Kosuke Imai, and Xiaolin Yang; The
+#' CBPS function is based on the code for version 2.15.0 of the glm function
+#' implemented in the stats package, originally written by Simon Davies.  This
+#' documentation is likewise modeled on the documentation for glm and borrows
+#' its language where the arguments and values are the same.
+#' @seealso \link{summary.CBPS}
+#' @references Imai, Kosuke and Marc Ratkovic.  2014. ``Covariate Balancing
+#' Propensity Score.'' Journal of the Royal Statistical Society, Series B
+#' (Statistical Methodology).
+#' \url{http://imai.princeton.edu/research/CBPS.html} \cr Fong, Christian, Chad
+#' Hazlett, and Kosuke Imai.  ``Parametric and Nonparametric Covariate
+#' Balancing Propensity Score for General Treatment Regimes.'' Unpublished
+#' Manuscript. \url{http://imai.princeton.edu/research/files/CBGPS.pdf} \cr
+#' Fan, Jianqing and Imai, Kosuke and Liu, Han and Ning, Yang and Yang,
+#' Xiaolin. ``Improving Covariate Balancing Propensity Score: A Doubly Robust
+#' and Efficient Approach.'' Unpublished Manuscript.
+#' \url{http://imai.princeton.edu/research/CBPStheory.html}
+#' @examples
+#' 
+#' ###
+#' ### Example: propensity score matching
+#' ###
+#' 
+#' ##Load the LaLonde data
+#' data(LaLonde)
+#' ## Estimate CBPS
+#' fit <- CBPS(treat ~ age + educ + re75 + re74 + 
+#' 			I(re75==0) + I(re74==0), 
+#' 			data = LaLonde, ATT = TRUE)
+#' summary(fit)
+#' \dontrun{
+#' ## matching via MatchIt: one to one nearest neighbor with replacement
+#' library(MatchIt)
+#' m.out <- matchit(treat ~ fitted(fit), method = "nearest", 
+#' 				 data = LaLonde, replace = TRUE)
+#' 
+#' ### Example: propensity score weighting 
+#' ###
+#' ## Simulation from Kang and Shafer (2007).
+#' set.seed(123456)
+#' n <- 500
+#' X <- mvrnorm(n, mu = rep(0, 4), Sigma = diag(4))
+#' prop <- 1 / (1 + exp(X[,1] - 0.5 * X[,2] + 
+#' 			 0.25*X[,3] + 0.1 * X[,4]))
+#' treat <- rbinom(n, 1, prop)
+#' y <- 210 + 27.4*X[,1] + 13.7*X[,2] + 13.7*X[,3] + 13.7*X[,4] + rnorm(n)
+#' 
+#' ##Estimate CBPS with a misspecified model
+#' X.mis <- cbind(exp(X[,1]/2), X[,2]*(1+exp(X[,1]))^(-1)+10, 
+#' 			  (X[,1]*X[,3]/25+.6)^3, (X[,2]+X[,4]+20)^2)
+#' fit1 <- CBPS(treat ~ X.mis, ATT = 0)
+#' summary(fit1)
+#' 	
+#' ## Horwitz-Thompson estimate
+#' mean(treat*y/fit1$fitted.values)
+#' ## Inverse propensity score weighting
+#' sum(treat*y/fit1$fitted.values)/sum(treat/fit1$fitted.values)
+#' 
+#' rm(list=c("y","X","prop","treat","n","X.mis","fit1"))
+#' 
+#' ### Example: Continuous Treatment
+#' set.seed(123456)
+#' n <- 1000
+#' X <- mvrnorm(n, mu = rep(0,2), Sigma = diag(2))
+#' beta <- rnorm(ncol(X)+1, sd = 1)
+#' treat <- cbind(1,X)%*%beta + rnorm(n, sd = 5)
+#' 
+#' treat.effect <- 1
+#' effect.beta <- rnorm(ncol(X))
+#' y <- rbinom(n, 1, (1 + exp(-treat.effect*treat - 
+#' 				   X%*%effect.beta))^-1)
+#' 
+#' fit2 <- CBPS(treat ~ X)
+#' summary(fit2)
+#' summary(glm(y ~ treat + X, weights = fit2$weights, 
+#' 			family = "quasibinomial"))
+#' 
+#' rm(list=c("n", "X", "beta", "treat", "treat.effect",
+#' 		  "effect.beta", "y", "fit2"))
+#' 
+#' ### Simulation example: Improved CBPS (or iCBPS) from Fan et al
+#' set.seed(123456)
+#' n <- 500
+#' X <- mvrnorm(n, mu = rep(0, 4), Sigma = diag(4))
+#' prop <- 1 / (1 + exp(X[,1] - 0.5 * X[,2] + 0.25*X[,3] + 0.1 * X[,4]))
+#' treat <- rbinom(n, 1, prop)
+#' y1 <- 210 + 27.4*X[,1] + 13.7*X[,2] + 13.7*X[,3] + 13.7*X[,4] + rnorm(n)
+#' y0 <- 210 + 13.7*X[,2] + 13.7*X[,3] + 13.7*X[,4] + rnorm(n)
+#' ##Estimate iCBPS with a misspecificied model
+#' X.mis <- cbind(exp(X[,1]/2), X[,2]*(1+exp(X[,1]))^(-1)+10, 
+#' 			   (X[,1]*X[,3]/25+.6)^3, (X[,2]+X[,4]+20)^2)
+#' fit1 <- CBPS(treat ~ X.mis, baseline.formula=~X.mis[,2:4], 
+#' 			 diff.formula=~X.mis[,1], ATT = FALSE)
+#' summary(fit1)
+#' }
+#' 
 CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=TRUE, method="over", twostep=TRUE,
                  sample.weights=NULL, baseline.formula=NULL, diff.formula=NULL,...) {
   if (missing(data)) 
@@ -261,6 +439,27 @@ print.CBPS <- function(x, digits = max(3, getOption("digits") - 3), ...) {
 }
 
 # Expands on print by including uncertainty for coefficient estimates
+
+
+#' Summarizing Covariate Balancing Propensity Score Estimation
+#' 
+#' Prints a summary of a fitted CBPS object.
+#' 
+#' Prints a summmary of a CBPS object, in a format similar to glm.  The
+#' variance matrix is calculated from the numerical Hessian at convergence of
+#' CBPS.
+#' 
+#' @param object an object of class \dQuote{CBPS}, usually, a result of a call
+#' to CBPS.
+#' @param ... Additional arguments to be passed to summary.
+#' @return \item{call}{The matched call.} \item{deviance.residuals}{The five
+#' number summary and the mean of the deviance residuals.}
+#' \item{coefficients}{A table including the estimate for the each coefficient
+#' and the standard error, z-value, and two-sided p-value for these estimates.}
+#' \item{J}{Hansen's J-Statistic for the fitted model.}
+#' \item{Log-Likelihood}{The log-likelihood of the fitted model.}
+#' @author Christian Fong, Marc Ratkovic, and Kosuke Imai.
+#' @seealso \link{CBPS}, \link{summary}
 summary.CBPS<-function(object, ...){
   ##x <- summary.glm(object, dispersion = dispersion, correlation = correlation, symbolic.cor = symbolic.cor, ...)	  
   x<-NULL
@@ -310,12 +509,80 @@ summary.CBPS<-function(object, ...){
 }
 
 
+
+
+#' Calculate Variance-Covariance Matrix for a Fitted CBPS Object
+#' 
+#' \code{vcov.CBPS} Returns the variance-covariance matrix of the main
+#' parameters of a fitted CBPS object.
+#' 
+#' This is the CBPS implementation of the generic function vcov().
+#' 
+#' @param object An object of class \code{formula} (or one that can be coerced
+#' to that class): a symbolic description of the model to be fitted.
+#' @param ... Additional arguments to be passed to vcov.CBPS
+#' @return A matrix of the estimated covariances between the parameter
+#' estimates in the linear or non-linear predictor of the model.
+#' @author Christian Fong, Marc Ratkovic, and Kosuke Imai.
+#' @seealso \link{vcov}
+#' @references This documentation is modeled on the documentation of the
+#' generic \link{vcov}.
+#' @examples
+#' 
+#' ###
+#' ### Example: Variance-Covariance Matrix
+#' ###
+#' 
+#' ##Load the LaLonde data
+#' data(LaLonde)
+#' ## Estimate CBPS via logistic regression
+#' fit <- CBPS(treat ~ age + educ + re75 + re74 + I(re75==0) + I(re74==0), 
+#' 		    data = LaLonde, ATT = TRUE)
+#' ## Get the variance-covariance matrix.
+#' vcov(fit)
+#' 
 vcov.CBPS<-function(object,...){
   return(object$var)
 }
 
 # Plot binary and multi-valued CBPS.  Plots the standardized difference in means for each contrast
 # before and after weighting.  Defined for an arbitrary number of discrete treatments.
+
+
+#' Plotting Covariate Balancing Propensity Score Estimation
+#' 
+#' Plots the absolute difference in standardized means before and after
+#' weighting.
+#' 
+#' The "Before Weighting" plot gives the balance before weighting, and the
+#' "After Weighting" plot gives the balance after weighting.
+#' 
+#' @aliases plot.CBPS plot.npCBPS
+#' @param x an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
+#' result of a call to \code{CBPS} or \code{npCBPS}.
+#' @param covars Indices of the covariates to be plotted (excluding the
+#' intercept).  For example, if only the first two covariates from
+#' \code{balance} are desired, set \code{covars} to 1:2.  The default is
+#' \code{NULL}, which plots all covariates.
+#' @param silent If set to \code{FALSE}, returns the imbalances used to
+#' construct the plot.  Default is \code{TRUE}, which returns nothing.
+#' @param boxplot If set to \code{TRUE}, returns a boxplot summarizing the
+#' imbalance on the covariates instead of a point for each covariate.  Useful
+#' if there are many covariates.
+#' @param ... Additional arguments to be passed to plot.
+#' @return For binary and multi-valued treatments, plots the absolute
+#' difference in standardized means by contrast for all covariates before and
+#' after weighting.  This quantity for a single covariate and a given pair of
+#' treatment conditions is given by \eqn{\frac{\sum_{i=1}^{n} w_i * (T_i == 1)
+#' * X_i}{\sum_{i=1}^{n} (T_i == 1) * w_i} - \frac{\sum_{i=1}^{n} w_i * (T_i ==
+#' 0) * X_i}{\sum_{i=1}^{n} (T_i == 0) * w_i}}{[\sum w_i * (T_i == 1) *
+#' X_i]/[\sum w_i * (T_i == 1)] - [\sum w_i * (T_i == 0) * X_i]/[\sum w_i *
+#' (T_i == 0)]}.  For continuous treatments, plots the weighted absolute
+#' Pearson correlation between the treatment and each covariate.  See
+#' \url{https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient#Weighted_correlation_coefficient.
+#' }
+#' @author Christian Fong, Marc Ratkovic, and Kosuke Imai.
+#' @seealso \link{CBPS}, \link{plot}
 plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){ 
   bal.x<-balance(x)
   if(is.null(covars))
@@ -433,6 +700,39 @@ plot.CBPSContinuous<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, 
                                 "original"=original.abs.cor))
 }
 
+
+
+#' Optimal Covariate Balance
+#' 
+#' Returns the mean and standardized mean associated with each treatment group,
+#' before and after weighting.
+#' 
+#' For binary and multi-valued treatments as well as marginal structural
+#' models, each of the matrices' rows are the covariates and whose columns are
+#' the weighted mean, and standardized mean associated with each treatment
+#' group.  The standardized mean is the weighted mean divided by the standard
+#' deviation of the covariate for the whole population.  For continuous
+#' treatments, returns the absolute Pearson correlation between the treatment
+#' and each covariate.
+#' 
+#' @aliases balance balance.npCBPS balance.CBPS balance.CBMSM
+#' @param object A CBPS, npCBPS, or CBMSM object.
+#' @param ... Additional arguments to be passed to balance.
+#' @return Returns a list of two matrices, "original" (before weighting) and
+#' "balanced" (after weighting).
+#' @author Christian Fong, Marc Ratkovic, and Kosuke Imai.
+#' @examples
+#' 
+#' ###
+#' ### Example: Assess Covariate Balance
+#' ###
+#' data(LaLonde)
+#' ## Estimate CBPS
+#' fit <- CBPS(treat ~ age + educ + re75 + re74 + 
+#' 			I(re75==0) + I(re74==0), 
+#' 			data = LaLonde, ATT = TRUE)
+#' balance(fit)
+#' 
 balance<-function(object, ...)
 {
   UseMethod("balance")
