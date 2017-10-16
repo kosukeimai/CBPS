@@ -51,11 +51,16 @@
 #' ## Get the variance-covariance matrix.
 #' vcov(fit)
 #' 
+#' @export vcov_outcome
+#' 
 vcov_outcome<-function(object, Y, Z, delta, tol=10^(-5), lambda=0.01)
 {
   UseMethod("vcov_outcome")
 }
 
+#'
+#' @export
+#'
 vcov_outcome.CBPSContinuous <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
   Xtilde <- object$Xtilde
   Ttilde <- object$Ttilde

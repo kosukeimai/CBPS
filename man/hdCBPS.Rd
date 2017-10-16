@@ -63,5 +63,7 @@ hdCBPS calculates ATE using CBPS method in a high dimensional setting.
 \author{
 Sida Peng
 
+hdCBPS high dimensional CBPS method to parses the formula object and passes the result to hdCBPS.fit, which calculates ATE using CBPS method in a high dimensional setting.
+
 Sida Peng
 }

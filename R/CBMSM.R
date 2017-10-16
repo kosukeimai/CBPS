@@ -150,6 +150,8 @@ library(MASS)
 #' summary(lm(y~-1+treat.1+treat.2+treat.3+X1, weights=multibin1$w))
 #' }
 #' 
+#' @export CBMSM
+#' 
 CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.variance = "approx", time.vary = FALSE, ...){
   if (missing(data)) 
     data <- environment(formula)
@@ -490,6 +492,7 @@ function(x, b=2){
         if(N ==1) Base.b[1, ] else Base.b
 } 
 
+#' @export
 balance.CBMSM<-function(object, ...)
 {
   treat.hist<-matrix(NA,nrow=length(unique(object$id)),ncol=length(unique(object$time)))
@@ -567,6 +570,9 @@ balance.CBMSM<-function(object, ...)
 #' the covariate in the full sample.
 #' @author Marc Ratkovic and Christian Fong
 #' @seealso \link{CBMSM}, \link{plot}
+#' 
+#' @export
+#' 
 plot.CBMSM<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...)
 {
   bal.out<-balance.CBMSM(x)

@@ -58,6 +58,9 @@
 #' 			data = LaLonde, ATT = TRUE)
 #' summary(fit)
 #' 
+#' 
+#' @export CBIV
+#' 
 CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosided = TRUE, ...) {
   probs.min<-10^-6
   pZ <- mean(Z)

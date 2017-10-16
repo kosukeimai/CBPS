@@ -81,6 +81,8 @@
 #' fit <- npCBPS(treat ~ age + educ, data = LaLonde, corprior=.1/nrow(LaLonde))
 #' plot(fit)
 #' 
+#' @export npCBPS
+#' 
 npCBPS <- function(formula, data, na.action, corprior=.01, print.level=0, ...) {
   if (missing(data)) 
     data <- environment(formula)
@@ -335,6 +337,9 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
 }
 
 # Calls the appropriate plot function, based on the number of treatments
+#'
+#' @export
+#'
 plot.npCBPS<-function(x, covars = NULL, silent = TRUE, ...){
   bal.x<-balance(x)
   
@@ -344,6 +349,9 @@ plot.npCBPS<-function(x, covars = NULL, silent = TRUE, ...){
 }
 
 # Calls the appropriate balance function based on the number of treatments
+#'
+#' @export
+#'
 balance.npCBPS<-function(object, ...){
   if(is.numeric(object$y)) {out<-balance.CBPSContinuous(object, ...)}
   else  {out<-balance.CBPS(object, ...)}

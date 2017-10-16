@@ -37,6 +37,7 @@ fit <- CBPS(treat ~ age + educ + re75 + re74 + I(re75==0) + I(re74==0),
 ## Get the variance-covariance matrix.
 vcov(fit)
 
+
 }
 \references{
 This documentation is modeled on the documentation of the

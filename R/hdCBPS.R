@@ -16,16 +16,8 @@
 #' \item{coefficients0}{Coefficients for the untreated propensity score}
 #' \item{model}{The model frame}
 #' @author Sida Peng
-#' @export
-
-
-# hdCBPS parses the formula object and passes the result to hdCBPS.fit
-
-
-#' hdCBPS: high dimensional CBPS method
 #' 
-#' hdCBPS calculates ATE using CBPS method in a high dimensional setting.
-#' 
+#' hdCBPS high dimensional CBPS method to parses the formula object and passes the result to hdCBPS.fit, which calculates ATE using CBPS method in a high dimensional setting.
 #' 
 #' @aliases hdCBPS hdCBPS
 #' @param formula An object of class formula (or one that can be coerced to
@@ -49,6 +41,9 @@
 #' \item{coefficients0}{Coefficients for the untreated propensity score}
 #' \item{model}{The model frame}
 #' @author Sida Peng
+#' 
+#' @export hdCBPS
+#' 
 hdCBPS <- function(formula, data, na.action, y, ATT = 0, iterations=1000, method="linear") {
   if (missing(data))
     data <- environment(formula)

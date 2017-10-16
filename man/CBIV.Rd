@@ -73,6 +73,7 @@ fit <- CBPS(treat ~ age + educ + re75 + re74 +
 			data = LaLonde, ATT = TRUE)
 summary(fit)
 
+
 }
 \references{
 Imai, Kosuke and Marc Ratkovic.  2014. ``Covariate Balancing

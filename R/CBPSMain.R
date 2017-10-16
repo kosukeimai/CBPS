@@ -2,10 +2,9 @@
 # 6 May 2015
 # 
 #-----------------------------------------------------------------
-
+#
 # CBPS parses the formula object and passes the result to CBPS.fit
-
-
+#
 #' Covariate Balancing Propensity Score (CBPS) Estimation
 #' 
 #' \code{CBPS} estimates propensity scores such that both covariate balance and
@@ -16,6 +15,16 @@
 #' condition and either 1, 2, or 3 distinct treatment conditions.
 #' 
 #' Fits covariate balancing propensity scores.
+#' 
+#' @importFrom MASS mvrnorm ginv
+#' @importFrom nnet multinom
+#' @importFrom numDeriv jacobian
+#' @importFrom MatchIt matchit
+#' @importFrom glmnet cv.glmnet
+#' @importFrom graphics abline axis layout mtext par plot points
+#' @importFrom stats .getXlevels as.formula binomial coef cor dnorm glm is.empty.model lm model.frame 
+#' @importFrom stats model.matrix model.response naprint optim optimize pnorm predict sd symnum var terms
+#' @importFrom utils packageDescription
 #' 
 #' @aliases CBPS CBPS.fit print.CBPS
 #' @param formula An object of class \code{formula} (or one that can be coerced
@@ -182,6 +191,8 @@
 #' summary(fit1)
 #' }
 #' 
+#' @export CBPS
+#' 
 CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=TRUE, method="over", twostep=TRUE,
                  sample.weights=NULL, baseline.formula=NULL, diff.formula=NULL,...) {
   if (missing(data)) 
@@ -246,6 +257,9 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
 
 # CBPS.fit determines the proper routine (what kind of treatment) and calls the
 # approporiate function.  It also pre- and post-processes the data
+#'
+#' @export
+#' 
 CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standardize, twostep, sample.weights=sample.weights,...){
   # Special clause interprets T = 1 or 0 as a binary treatment, even if it is numeric
   if ((levels(factor(treat))[1] %in% c("FALSE","0",0)) & (levels(factor(treat))[2] %in% c("TRUE","1",1))
@@ -418,6 +432,9 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
 }
 
 # Print coefficients and model fit statistics
+#'
+#' @export
+#' 
 print.CBPS <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   cat("\nCall:  ", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
       "\n\n", sep = "")
@@ -460,6 +477,9 @@ print.CBPS <- function(x, digits = max(3, getOption("digits") - 3), ...) {
 #' \item{Log-Likelihood}{The log-likelihood of the fitted model.}
 #' @author Christian Fong, Marc Ratkovic, and Kosuke Imai.
 #' @seealso \link{CBPS}, \link{summary}
+#'
+#' @export
+#' 
 summary.CBPS<-function(object, ...){
   ##x <- summary.glm(object, dispersion = dispersion, correlation = correlation, symbolic.cor = symbolic.cor, ...)	  
   x<-NULL
@@ -541,6 +561,9 @@ summary.CBPS<-function(object, ...){
 #' ## Get the variance-covariance matrix.
 #' vcov(fit)
 #' 
+#'
+#' @export
+#' 
 vcov.CBPS<-function(object,...){
   return(object$var)
 }
@@ -583,6 +606,9 @@ vcov.CBPS<-function(object,...){
 #' }
 #' @author Christian Fong, Marc Ratkovic, and Kosuke Imai.
 #' @seealso \link{CBPS}, \link{plot}
+#'
+#' @export
+#' 
 plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){ 
   bal.x<-balance(x)
   if(is.null(covars))
@@ -674,6 +700,9 @@ plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){
 }
 
 # Plot the pre-and-post weighting correlations between X and T
+#'
+#' @export
+#' 
 plot.CBPSContinuous<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){     
   bal.x<-balance(x)
   if (is.null(covars))
@@ -732,6 +761,8 @@ plot.CBPSContinuous<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, 
 #' 			I(re75==0) + I(re74==0), 
 #' 			data = LaLonde, ATT = TRUE)
 #' balance(fit)
+#'
+#' @export
 #' 
 balance<-function(object, ...)
 {
@@ -739,6 +770,9 @@ balance<-function(object, ...)
 }
 
 # Calculates the pre- and post-weighting difference in standardized means for covariate within each contrast
+#'
+#' @export
+#' 
 balance.CBPS<-function(object, ...){
   treats<-as.factor(object$y)
   treat.names<-levels(treats)
@@ -770,6 +804,9 @@ balance.CBPS<-function(object, ...){
 }
 
 # Calculates the pre- and post-weighting correlations between each covariate and the T
+#'
+#' @export
+#' 
 balance.CBPSContinuous<-function(object, ...){
   treat<-object$y
   X<-object$x
