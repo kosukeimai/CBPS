@@ -1,12 +1,6 @@
-###-----------------------------------------------------------------
-# 6 May 2015
-# 
-#-----------------------------------------------------------------
-#
-# CBPS parses the formula object and passes the result to CBPS.fit
-#
-#' Covariate Balancing Propensity Score (CBPS) Estimation
+#' @title Covariate Balancing Propensity Score (CBPS) Estimation
 #' 
+#' @description
 #' \code{CBPS} estimates propensity scores such that both covariate balance and
 #' prediction of treatment assignment are maximized.  The method, therefore,
 #' avoids an iterative process between model fitting and balance checking and
@@ -15,6 +9,8 @@
 #' condition and either 1, 2, or 3 distinct treatment conditions.
 #' 
 #' Fits covariate balancing propensity scores.
+#' 
+#' @aliases CBPS CBPS.fit print.CBPS
 #' 
 #' @importFrom MASS mvrnorm ginv
 #' @importFrom nnet multinom
@@ -26,7 +22,6 @@
 #' @importFrom stats model.matrix model.response naprint optim optimize pnorm predict sd symnum var terms
 #' @importFrom utils packageDescription
 #' 
-#' @aliases CBPS CBPS.fit print.CBPS
 #' @param formula An object of class \code{formula} (or one that can be coerced
 #' to that class): a symbolic description of the model to be fitted.
 #' @param data An optional data frame, list or environment (or object coercible
@@ -255,8 +250,8 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   fit
 }
 
-# CBPS.fit determines the proper routine (what kind of treatment) and calls the
-# approporiate function.  It also pre- and post-processes the data
+#' CBPS.fit determines the proper routine (what kind of treatment) and calls the 
+#' approporiate function.  It also pre- and post-processes the data
 #'
 #' @export
 #' 
@@ -431,7 +426,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
   output
 }
 
-# Print coefficients and model fit statistics
+#' Print coefficients and model fit statistics
 #'
 #' @export
 #' 
@@ -699,7 +694,7 @@ plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){
                                 "original"=abs.mean.ori.contrasts))
 }
 
-# Plot the pre-and-post weighting correlations between X and T
+#' Plot the pre-and-post weighting correlations between X and T
 #'
 #' @export
 #' 
@@ -769,7 +764,7 @@ balance<-function(object, ...)
   UseMethod("balance")
 }
 
-# Calculates the pre- and post-weighting difference in standardized means for covariate within each contrast
+#' Calculates the pre- and post-weighting difference in standardized means for covariate within each contrast
 #'
 #' @export
 #' 
@@ -803,7 +798,7 @@ balance.CBPS<-function(object, ...){
   out
 }
 
-# Calculates the pre- and post-weighting correlations between each covariate and the T
+#' Calculates the pre- and post-weighting correlations between each covariate and the T
 #'
 #' @export
 #' 

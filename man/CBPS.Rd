@@ -105,8 +105,7 @@ avoids an iterative process between model fitting and balance checking and
 implements both simultaneously. For cross-sectional data, the method can
 take continuous treatments and treatments with a control (baseline)
 condition and either 1, 2, or 3 distinct treatment conditions.
-}
-\details{
+
 Fits covariate balancing propensity scores.
 }
 \examples{

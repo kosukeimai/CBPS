@@ -33,8 +33,7 @@ the weights.
 \description{
 \code{vcov_outcome} Returns the variance-covariance matrix of the main
 parameters of a fitted CBPS object.
-}
-\details{
+
 This adjusts the standard errors of the weighted regression of Y on Z for
 uncertainty in the weights.
 }

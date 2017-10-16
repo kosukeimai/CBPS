@@ -1,8 +1,6 @@
-#npCBPS parses the formula object and passes the result to npCBPS.fit
-
-
-#' Non-Parametric Covariate Balancing Propensity Score (npCBPS) Estimation
+#' @title Non-Parametric Covariate Balancing Propensity Score (npCBPS) Estimation
 #' 
+#' @description
 #' \code{npCBPS} is a method to estimate weights interpretable as (stabilized)
 #' inverse generlized propensity score weights, w_i = f(T_i)/f(T_i|X), without
 #' actually estimating a model for the treatment to arrive at f(T|X) estimates.
@@ -336,7 +334,7 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
   return(R)
 }
 
-# Calls the appropriate plot function, based on the number of treatments
+#' Calls the appropriate plot function, based on the number of treatments
 #'
 #' @export
 #'
@@ -348,7 +346,7 @@ plot.npCBPS<-function(x, covars = NULL, silent = TRUE, ...){
   if(!is.null(out)) return(out)  
 }
 
-# Calls the appropriate balance function based on the number of treatments
+#' Calls the appropriate balance function based on the number of treatments
 #'
 #' @export
 #'

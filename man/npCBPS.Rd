@@ -67,8 +67,7 @@ In brief, this works by maximizing the empirical likelihood of observing the
 values of treatment and covariates that were observed, while constraining
 the weights to be those that (a) ensure balance on the covariates, and (b)
 maintain the original means of the treatment and covariates.
-}
-\details{
+
 In the continuous treatment context, this balance on covariates means zero
 correlation of each covariate with the treatment. In binary or categorical
 treatment contexts, balance on covariates implies equal means on the
