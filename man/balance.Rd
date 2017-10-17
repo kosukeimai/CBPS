@@ -2,9 +2,6 @@
 % Please edit documentation in R/CBPSMain.R
 \name{balance}
 \alias{balance}
-\alias{balance.npCBPS}
-\alias{balance.CBPS}
-\alias{balance.CBMSM}
 \title{Optimal Covariate Balance}
 \usage{
 balance(object, ...)
@@ -30,6 +27,8 @@ group.  The standardized mean is the weighted mean divided by the standard
 deviation of the covariate for the whole population.  For continuous
 treatments, returns the absolute Pearson correlation between the treatment
 and each covariate.
+
+### @aliases balance balance.npCBPS balance.CBPS balance.CBMSM
 }
 \examples{
 

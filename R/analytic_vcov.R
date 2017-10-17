@@ -7,7 +7,7 @@
 #' This adjusts the standard errors of the weighted regression of Y on Z for
 #' uncertainty in the weights.
 #' 
-#' @aliases vcov_outcome vcov_outcome.CBPSContinuous
+#' ### @aliases vcov_outcome vcov_outcome.CBPSContinuous
 #' @param object A fitted CBPS object.
 #' @param Y The outcome.
 #' @param Z The covariates (including the treatment and an intercept term) that
@@ -46,6 +46,15 @@ vcov_outcome<-function(object, Y, Z, delta, tol=10^(-5), lambda=0.01)
 }
 
 #' vcov_outcome
+#' @param object A fitted CBPS object.
+#' @param Y The outcome.
+#' @param Z The covariates (including the treatment and an intercept term) that predict the outcome.
+#' @param delta The coefficients from regressing Y on Z, weighting by the cbpsfit$weights.
+#' @param tol Tolerance for choosing whether to improve conditioning of the "M"
+#' matrix prior to conversion.  Equal to 1/(condition number), i.e. the
+#' smallest eigenvalue divided by the largest.
+#' @param lambda The amount to be added to the diagonal of M if the condition of the matrix is worse than tol.
+#' @return Variance-Covariance Matrix for Outcome Model
 #'
 #' @export
 #'

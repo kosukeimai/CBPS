@@ -22,7 +22,7 @@
 #' 
 #' Estimates non-parametric covariate balancing propensity score weights.
 #' 
-#' @aliases npCBPS npCBPS.fit
+#' ### @aliases npCBPS npCBPS.fit
 #' @param formula An object of class \code{formula} (or one that can be coerced
 #' to that class): a symbolic description of the model to be fitted.
 #' @param data An optional data frame, list or environment (or object coercible
@@ -47,9 +47,6 @@
 #' (log_post), the log empirical likelihood associated with the weights
 #' (log_el), and the log prior probability of the (weighted) correlation of
 #' treatment with the covariates.
-#' @param treat A vector of treatment assignments.  Binary or multi-valued
-#' treatments should be factors.  Continuous treatments should be numeric.
-#' @param X A covariate matrix.
 #' @param ... Other parameters to be passed.
 #' @return \item{weights}{The optimal weights} \item{y}{The treatment vector
 #' used} \item{x}{The covariate matrix} \item{model}{The model frame}
@@ -120,6 +117,29 @@ npCBPS <- function(formula, data, na.action, corprior=.01, print.level=0, ...) {
   fit$terms<-mt
   fit
 }
+
+#' npCBPS.fit
+#'
+#' @param treat A vector of treatment assignments.  Binary or multi-valued
+#' treatments should be factors.  Continuous treatments should be numeric.
+#' @param X A covariate matrix.
+#' @param corprior Prior hyperparameter controlling the expected amount of
+#' correlation between each covariate and the treatment. Specifically, the
+#' amount of correlation between the k-dimensional covariates, X, and the
+#' treatment T after weighting is assumed to have prior distribution
+#' MVN(0,sigma^2 I_k). We conceptualize sigma^2 as a tuning parameter to be
+#' used pragmatically. It's default of 0.1 ensures that the balance constraints
+#' are not too harsh, and that a solution is likely to exist. Once the
+#' algorithm works at such a high value of sigma^2, the user may wish to
+#' attempt values closer to 0 to get finer balance.
+#' @param print.level Controls verbosity of output to the screen while npCBPS
+#' runs. At the default of print.level=0, little output is produced. It
+#' print.level>0, it outputs diagnostics including the log posterior
+#' (log_post), the log empirical likelihood associated with the weights
+#' (log_el), and the log prior probability of the (weighted) correlation of
+#' treatment with the covariates.
+#' @param ... Other parameters to be passed.
+#'
 npCBPS.fit=function(treat, X, corprior, print.level, ...){
   D=treat
   rescale.orig=TRUE
@@ -335,6 +355,14 @@ npCBPS.fit=function(treat, X, corprior, print.level, ...){
 }
 
 #' Calls the appropriate plot function, based on the number of treatments
+#' @param x an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
+#' result of a call to \code{CBPS} or \code{npCBPS}.
+#' @param covars Indices of the covariates to be plotted (excluding the intercept).  For example, 
+#' if only the first two covariates from \code{balance} are desired, set \code{covars} to 1:2.  
+#' The default is \code{NULL}, which plots all covariates.
+#' @param silent If set to \code{FALSE}, returns the imbalances used to
+#' construct the plot.  Default is \code{TRUE}, which returns nothing.
+#' @param ... Additional arguments to be passed to balance.
 #'
 #' @export
 #'
@@ -347,6 +375,9 @@ plot.npCBPS<-function(x, covars = NULL, silent = TRUE, ...){
 }
 
 #' Calls the appropriate balance function based on the number of treatments
+#' 
+#' @param object A CBPS, npCBPS, or CBMSM object.
+#' @param ... Other parameters to be passed.
 #'
 #' @export
 #'

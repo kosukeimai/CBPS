@@ -13,7 +13,7 @@ library(MASS)
 #' 
 #' Fits covariate balancing propensity scores for marginal structural models.
 #' 
-#' @aliases CBMSM CBMSM.fit
+#' ### @aliases CBMSM CBMSM.fit
 #' @param formula A list of formulas of the form treat ~ X.  The function
 #' assumes that there is one formula for each time, and they are ordered from
 #' the first time to the last time.
@@ -34,18 +34,9 @@ library(MASS)
 #' \code{TRUE} to use the full variance matrix.
 #' @param time.vary Default is \code{FALSE}, which uses the same coefficients
 #' across time period.  Set to \code{TRUE} to fit one set per time period.
-#' @param treat A vector of treatment assignments.  For N observations over T
-#' time periods, the length of treat should be N*T.
-#' @param X A covariate matrix.  For N observations over T time periods, X
-#' should have N*T rows.
 #' @param type "MSM" for a marginal structural model, with multiple time
 #' periods or "MultiBin" for multiple binary treatments at the same time
 #' period.
-#' @param MultiBin.fit A parameter for whether the multiple binary treatments
-#' occur concurrently (\code{FALSE}) or over consecutive time periods
-#' (\code{TRUE}) as in a marginal structural model.  Setting type = "MultiBin"
-#' when calling \code{CBMSM} will set MultiBin.fit to \code{TRUE} when
-#' CBMSM.fit is called.
 #' @param ... Other parameters to be passed through to \code{optim()}
 #' @return \item{weights}{The optimal weights.} \item{fitted.values}{The fitted
 #' propensity score for each observation.} \item{y}{The treatment vector used.}
@@ -225,6 +216,32 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
 ########################
 ###Calls loss function
 ########################
+#' CBMSM.fit
+#'
+#' @param treat A vector of treatment assignments.  For N observations over T
+#' time periods, the length of treat should be N*T.
+#' @param X A covariate matrix.  For N observations over T time periods, X
+#' should have N*T rows.
+#' @param id A vector which identifies the unit associated with each row of
+#' treat and X.
+#' @param time A vector which identifies the time period associated with each
+#' row of treat and X.
+#' @param MultiBin.fit A parameter for whether the multiple binary treatments
+#' occur concurrently (\code{FALSE}) or over consecutive time periods
+#' (\code{TRUE}) as in a marginal structural model.  Setting type = "MultiBin"
+#' when calling \code{CBMSM} will set MultiBin.fit to \code{TRUE} when
+#' CBMSM.fit is called.
+#' @param twostep Set to \code{TRUE} to use a two-step estimator, which will
+#' run substantially faster than continuous-updating.  Default is \code{FALSE},
+#' which uses the continuous-updating estimator described by Imai and Ratkovic
+#' (2014).
+#' @param msm.variance Default is \code{FALSE}, which uses the low-rank
+#' approximation of the variance described in Imai and Ratkovic (2014).  Set to
+#' \code{TRUE} to use the full variance matrix.
+#' @param time.vary Default is \code{FALSE}, which uses the same coefficients
+#' across time period.  Set to \code{TRUE} to fit one set per time period.
+#' @param ... Other parameters to be passed through to \code{optim()}
+#'
 CBMSM.fit<-function(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary, ...){
 id0<-id
 id<-as.numeric(as.factor(id0))

@@ -6,6 +6,11 @@
 \usage{
 \method{balance}{CBPSContinuous}(object, ...)
 }
+\arguments{
+\item{object}{A CBPS, npCBPS, or CBMSM object.}
+
+\item{...}{Additional arguments to be passed to balance.}
+}
 \description{
 Calculates the pre- and post-weighting correlations between each covariate and the T
 }

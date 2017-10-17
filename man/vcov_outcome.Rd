@@ -2,7 +2,6 @@
 % Please edit documentation in R/analytic_vcov.R
 \name{vcov_outcome}
 \alias{vcov_outcome}
-\alias{vcov_outcome.CBPSContinuous}
 \title{Calculate Variance-Covariance Matrix for Outcome Model}
 \usage{
 vcov_outcome(object, Y, Z, delta, tol = 10^(-5), lambda = 0.01)
@@ -36,6 +35,8 @@ parameters of a fitted CBPS object.
 
 This adjusts the standard errors of the weighted regression of Y on Z for
 uncertainty in the weights.
+
+### @aliases vcov_outcome vcov_outcome.CBPSContinuous
 }
 \examples{
 

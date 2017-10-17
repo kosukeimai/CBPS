@@ -6,6 +6,11 @@
 \usage{
 \method{balance}{npCBPS}(object, ...)
 }
+\arguments{
+\item{object}{A CBPS, npCBPS, or CBMSM object.}
+
+\item{...}{Other parameters to be passed.}
+}
 \description{
 Calls the appropriate balance function based on the number of treatments
 }

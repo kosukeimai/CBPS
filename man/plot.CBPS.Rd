@@ -2,7 +2,6 @@
 % Please edit documentation in R/CBPSMain.R
 \name{plot.CBPS}
 \alias{plot.CBPS}
-\alias{plot.npCBPS}
 \title{Plotting Covariate Balancing Propensity Score Estimation}
 \usage{
 \method{plot}{CBPS}(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...)
@@ -45,6 +44,8 @@ weighting.
 \details{
 The "Before Weighting" plot gives the balance before weighting, and the
 "After Weighting" plot gives the balance after weighting.
+
+### @aliases plot.CBPS plot.npCBPS
 }
 \seealso{
 \link{CBPS}, \link{plot}

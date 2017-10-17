@@ -7,6 +7,24 @@
 \method{vcov_outcome}{CBPSContinuous}(object, Y, Z, delta, tol = 10^(-5),
   lambda = 0.01)
 }
+\arguments{
+\item{object}{A fitted CBPS object.}
+
+\item{Y}{The outcome.}
+
+\item{Z}{The covariates (including the treatment and an intercept term) that predict the outcome.}
+
+\item{delta}{The coefficients from regressing Y on Z, weighting by the cbpsfit$weights.}
+
+\item{tol}{Tolerance for choosing whether to improve conditioning of the "M"
+matrix prior to conversion.  Equal to 1/(condition number), i.e. the
+smallest eigenvalue divided by the largest.}
+
+\item{lambda}{The amount to be added to the diagonal of M if the condition of the matrix is worse than tol.}
+}
+\value{
+Variance-Covariance Matrix for Outcome Model
+}
 \description{
 vcov_outcome
 }

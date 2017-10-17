@@ -10,7 +10,7 @@
 #' 
 #' Fits covariate balancing propensity scores.
 #' 
-#' @aliases CBPS CBPS.fit print.CBPS
+#' ### @aliases CBPS CBPS.fit print.CBPS
 #' 
 #' @importFrom MASS mvrnorm ginv
 #' @importFrom nnet multinom
@@ -48,9 +48,6 @@
 #' @param twostep Default is \code{TRUE} for a two-step estimator, which will
 #' run substantially faster than continuous-updating.  Set to \code{FALSE} to
 #' use the continuous-updating estimator described by Imai and Ratkovic (2014).
-#' @param treat A vector of treatment assignments.  Binary or multi-valued
-#' treatments should be factors.  Continuous treatments should be numeric.
-#' @param X A covariate matrix.
 #' @param sample.weights Survey sampling weights for the observations, if
 #' applicable.  When left NULL, defaults to a sampling weight of 1 for each
 #' observation.
@@ -61,10 +58,10 @@
 #' works with binary treatments.  A formula specifying the balancing covariates
 #' in the difference between the treatment and baseline outcome model, i.e.,
 #' E(Y(1)-Y(0)|X).
-#' @param baselineX Similar to \code{baseline.formula}, but in matrix form.
-#' @param diffX Similar to \code{diff.formula}, but in matrix form.
 #' @param ... Other parameters to be passed through to \code{optim()}.
+#' 
 #' @return \item{fitted.values}{The fitted propensity score}
+#' 
 #' \item{deviance}{Minus twice the log-likelihood of the CBPS fit}
 #' \item{weights}{The optimal weights.  Let \eqn{\pi_i = f(T_i | X_i)}{\pi_i =
 #' f(T_i | X_i)}.  For binary ATE, these are given by \eqn{\frac{T_i}{\pi_i} +
@@ -252,6 +249,36 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
 
 #' CBPS.fit determines the proper routine (what kind of treatment) and calls the 
 #' approporiate function.  It also pre- and post-processes the data
+#' 
+#'
+#' @param ATT Default is 1, which finds the average treatment effect on the
+#' treated interpreting the second level of the treatment factor as the
+#' treatment.  Set to 2 to find the ATT interpreting the first level of the
+#' treatment factor as the treatment.  Set to 0 to find the average treatment
+#' effect. For non-binary treatments, only the ATE is available.
+#' @param iterations An optional parameter for the maximum number of iterations
+#' for the optimization.  Default is 1000.
+#' @param standardize Default is \code{TRUE}, which normalizes weights to sum
+#' to 1 within each treatment group.  For continuous treatments, normalizes
+#' weights to sum up to 1 for the entire sample.  Set to \code{FALSE} to return
+#' Horvitz-Thompson weights.
+#' @param method Choose "over" to fit an over-identified model that combines
+#' the propensity score and covariate balancing conditions; choose "exact" to
+#' fit a model that only contains the covariate balancing conditions.
+#' @param twostep Default is \code{TRUE} for a two-step estimator, which will
+#' run substantially faster than continuous-updating.  Set to \code{FALSE} to
+#' use the continuous-updating estimator described by Imai and Ratkovic (2014).
+#' @param treat A vector of treatment assignments.  Binary or multi-valued
+#' treatments should be factors.  Continuous treatments should be numeric.
+#' @param X A covariate matrix.
+#' @param sample.weights Survey sampling weights for the observations, if
+#' applicable.  When left NULL, defaults to a sampling weight of 1 for each
+#' observation.
+#' @param baselineX Similar to \code{baseline.formula}, but in matrix form.
+#' @param diffX Similar to \code{diff.formula}, but in matrix form.
+#' @param ... Other parameters to be passed through to \code{optim()}.
+#' 
+#' @return CBPS.fit object
 #'
 #' @export
 #' 
@@ -427,6 +454,9 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
 }
 
 #' Print coefficients and model fit statistics
+#' @param x an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a result of a call to \code{CBPS} or \code{npCBPS}.
+#' @param digits the number of digits to keep for the numerical quantities.
+#' @param ... Additional arguments to be passed to summary.
 #'
 #' @export
 #' 
@@ -575,7 +605,7 @@ vcov.CBPS<-function(object,...){
 #' The "Before Weighting" plot gives the balance before weighting, and the
 #' "After Weighting" plot gives the balance after weighting.
 #' 
-#' @aliases plot.CBPS plot.npCBPS
+#' ### @aliases plot.CBPS plot.npCBPS
 #' @param x an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
 #' result of a call to \code{CBPS} or \code{npCBPS}.
 #' @param covars Indices of the covariates to be plotted (excluding the
@@ -695,6 +725,17 @@ plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){
 }
 
 #' Plot the pre-and-post weighting correlations between X and T
+#' @param x an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
+#' result of a call to \code{CBPS} or \code{npCBPS}.
+#' @param covars Indices of the covariates to be plotted (excluding the intercept).  For example, 
+#' if only the first two covariates from \code{balance} are desired, set \code{covars} to 1:2.  
+#' The default is \code{NULL}, which plots all covariates.
+#' @param silent If set to \code{FALSE}, returns the imbalances used to
+#' construct the plot.  Default is \code{TRUE}, which returns nothing.
+#' @param boxplot If set to \code{TRUE}, returns a boxplot summarizing the
+#' imbalance on the covariates instead of a point for each covariate.  Useful
+#' if there are many covariates.
+#' @param ... Additional arguments to be passed to balance.
 #'
 #' @export
 #' 
@@ -739,7 +780,7 @@ plot.CBPSContinuous<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, 
 #' treatments, returns the absolute Pearson correlation between the treatment
 #' and each covariate.
 #' 
-#' @aliases balance balance.npCBPS balance.CBPS balance.CBMSM
+#' ### @aliases balance balance.npCBPS balance.CBPS balance.CBMSM
 #' @param object A CBPS, npCBPS, or CBMSM object.
 #' @param ... Additional arguments to be passed to balance.
 #' @return Returns a list of two matrices, "original" (before weighting) and
@@ -765,6 +806,8 @@ balance<-function(object, ...)
 }
 
 #' Calculates the pre- and post-weighting difference in standardized means for covariate within each contrast
+#' @param object A CBPS, npCBPS, or CBMSM object.
+#' @param ... Additional arguments to be passed to balance.
 #'
 #' @export
 #' 
@@ -799,6 +842,8 @@ balance.CBPS<-function(object, ...){
 }
 
 #' Calculates the pre- and post-weighting correlations between each covariate and the T
+#' @param object A CBPS, npCBPS, or CBMSM object.
+#' @param ... Additional arguments to be passed to balance.
 #'
 #' @export
 #' 

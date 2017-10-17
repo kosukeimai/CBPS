@@ -2,7 +2,6 @@
 % Please edit documentation in R/npCBPS.R
 \name{npCBPS}
 \alias{npCBPS}
-\alias{npCBPS.fit}
 \title{Non-Parametric Covariate Balancing Propensity Score (npCBPS) Estimation}
 \usage{
 npCBPS(formula, data, na.action, corprior = 0.01, print.level = 0, ...)
@@ -38,11 +37,6 @@ print.level>0, it outputs diagnostics including the log posterior
 treatment with the covariates.}
 
 \item{...}{Other parameters to be passed.}
-
-\item{treat}{A vector of treatment assignments.  Binary or multi-valued
-treatments should be factors.  Continuous treatments should be numeric.}
-
-\item{X}{A covariate matrix.}
 }
 \value{
 \item{weights}{The optimal weights} \item{y}{The treatment vector
@@ -80,6 +74,8 @@ covariate with the treatment to be slightly non-zero, as might be expected
 in a a given finite sample.
 
 Estimates non-parametric covariate balancing propensity score weights.
+
+### @aliases npCBPS npCBPS.fit
 }
 \examples{
 

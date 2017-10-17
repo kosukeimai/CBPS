@@ -6,6 +6,11 @@
 \usage{
 \method{balance}{CBPS}(object, ...)
 }
+\arguments{
+\item{object}{A CBPS, npCBPS, or CBMSM object.}
+
+\item{...}{Additional arguments to be passed to balance.}
+}
 \description{
 Calculates the pre- and post-weighting difference in standardized means for covariate within each contrast
 }

@@ -6,6 +6,13 @@
 \usage{
 \method{print}{CBPS}(x, digits = max(3, getOption("digits") - 3), ...)
 }
+\arguments{
+\item{x}{an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a result of a call to \code{CBPS} or \code{npCBPS}.}
+
+\item{digits}{the number of digits to keep for the numerical quantities.}
+
+\item{...}{Additional arguments to be passed to summary.}
+}
 \description{
 Print coefficients and model fit statistics
 }

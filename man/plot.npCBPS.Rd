@@ -6,6 +6,19 @@
 \usage{
 \method{plot}{npCBPS}(x, covars = NULL, silent = TRUE, ...)
 }
+\arguments{
+\item{x}{an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
+result of a call to \code{CBPS} or \code{npCBPS}.}
+
+\item{covars}{Indices of the covariates to be plotted (excluding the intercept).  For example, 
+if only the first two covariates from \code{balance} are desired, set \code{covars} to 1:2.  
+The default is \code{NULL}, which plots all covariates.}
+
+\item{silent}{If set to \code{FALSE}, returns the imbalances used to
+construct the plot.  Default is \code{TRUE}, which returns nothing.}
+
+\item{...}{Additional arguments to be passed to balance.}
+}
 \description{
 Calls the appropriate plot function, based on the number of treatments
 }

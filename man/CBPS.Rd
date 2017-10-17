@@ -2,8 +2,6 @@
 % Please edit documentation in R/CBPSMain.R
 \name{CBPS}
 \alias{CBPS}
-\alias{CBPS.fit}
-\alias{print.CBPS}
 \title{Covariate Balancing Propensity Score (CBPS) Estimation}
 \usage{
 CBPS(formula, data, na.action, ATT = 1, iterations = 1000,
@@ -60,18 +58,10 @@ in the difference between the treatment and baseline outcome model, i.e.,
 E(Y(1)-Y(0)|X).}
 
 \item{...}{Other parameters to be passed through to \code{optim()}.}
-
-\item{treat}{A vector of treatment assignments.  Binary or multi-valued
-treatments should be factors.  Continuous treatments should be numeric.}
-
-\item{X}{A covariate matrix.}
-
-\item{baselineX}{Similar to \code{baseline.formula}, but in matrix form.}
-
-\item{diffX}{Similar to \code{diff.formula}, but in matrix form.}
 }
 \value{
 \item{fitted.values}{The fitted propensity score}
+
 \item{deviance}{Minus twice the log-likelihood of the CBPS fit}
 \item{weights}{The optimal weights.  Let \eqn{\pi_i = f(T_i | X_i)}{\pi_i =
 f(T_i | X_i)}.  For binary ATE, these are given by \eqn{\frac{T_i}{\pi_i} +
@@ -107,6 +97,8 @@ take continuous treatments and treatments with a control (baseline)
 condition and either 1, 2, or 3 distinct treatment conditions.
 
 Fits covariate balancing propensity scores.
+
+### @aliases CBPS CBPS.fit print.CBPS
 }
 \examples{
 

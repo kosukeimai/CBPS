@@ -7,6 +7,23 @@
 \method{plot}{CBPSContinuous}(x, covars = NULL, silent = TRUE,
   boxplot = FALSE, ...)
 }
+\arguments{
+\item{x}{an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
+result of a call to \code{CBPS} or \code{npCBPS}.}
+
+\item{covars}{Indices of the covariates to be plotted (excluding the intercept).  For example, 
+if only the first two covariates from \code{balance} are desired, set \code{covars} to 1:2.  
+The default is \code{NULL}, which plots all covariates.}
+
+\item{silent}{If set to \code{FALSE}, returns the imbalances used to
+construct the plot.  Default is \code{TRUE}, which returns nothing.}
+
+\item{boxplot}{If set to \code{TRUE}, returns a boxplot summarizing the
+imbalance on the covariates instead of a point for each covariate.  Useful
+if there are many covariates.}
+
+\item{...}{Additional arguments to be passed to balance.}
+}
 \description{
 Plot the pre-and-post weighting correlations between X and T
 }

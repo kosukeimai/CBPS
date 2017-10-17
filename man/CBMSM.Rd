@@ -2,7 +2,6 @@
 % Please edit documentation in R/CBMSM.R
 \name{CBMSM}
 \alias{CBMSM}
-\alias{CBMSM.fit}
 \title{Covariate Balancing Propensity Score (CBPS) for Marginal Structural Models}
 \usage{
 CBMSM(formula, id, time, data, type = "MSM", twostep = TRUE,
@@ -41,18 +40,6 @@ approximation of the variance described in Imai and Ratkovic (2014).  Set to
 across time period.  Set to \code{TRUE} to fit one set per time period.}
 
 \item{...}{Other parameters to be passed through to \code{optim()}}
-
-\item{treat}{A vector of treatment assignments.  For N observations over T
-time periods, the length of treat should be N*T.}
-
-\item{X}{A covariate matrix.  For N observations over T time periods, X
-should have N*T rows.}
-
-\item{MultiBin.fit}{A parameter for whether the multiple binary treatments
-occur concurrently (\code{FALSE}) or over consecutive time periods
-(\code{TRUE}) as in a marginal structural model.  Setting type = "MultiBin"
-when calling \code{CBMSM} will set MultiBin.fit to \code{TRUE} when
-CBMSM.fit is called.}
 }
 \value{
 \item{weights}{The optimal weights.} \item{fitted.values}{The fitted
@@ -74,6 +61,8 @@ binary treatments administered concurrently.
 }
 \details{
 Fits covariate balancing propensity scores for marginal structural models.
+
+### @aliases CBMSM CBMSM.fit
 }
 \examples{
 
