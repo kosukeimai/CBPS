@@ -209,7 +209,7 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   }
   
   X <- if (!is.empty.model(mt)) model.matrix(mt, mf)#[,-2]
-  else matrix(, NROW(Y), 0L)
+  else matrix(NA, NROW(Y), 0L)
   
   X<-cbind(1,X[,apply(X,2,sd)>0])
   
