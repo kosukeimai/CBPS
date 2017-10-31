@@ -5,7 +5,7 @@
 
 # CBPS parses the formula object and passes the result to CBPS.fit
 CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=TRUE, method="over", twostep=TRUE,
-                 baseline.formula=NULL, diff.formula=NULL, ...) {
+                 sample.weights=NULL, baseline.formula=NULL, diff.formula=NULL,...) {
   if (missing(data)) 
     data <- environment(formula)
   call <- match.call()
@@ -32,6 +32,9 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   
   X<-cbind(1,X[,apply(X,2,sd)>0])
   
+  #Handle sample weights
+  if(is.null(sample.weights)) sample.weights<-rep(1,nrow(X))
+  
   # Parse formulae 2 and 3, if they are necessary
   if (xor(is.null(baseline.formula), is.null(diff.formula))){
     stop("Either baseline.formula or diff.formula not specified.  Both must be specified to use CBPSOptimal.  Otherwise, leave both NULL.")
@@ -52,7 +55,7 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   fit <- eval(call("CBPS.fit", X = X, treat = Y, ATT=ATT, 
                    intercept = attr(mt, "intercept") > 0L, method=method, iterations=iterations, 
                    standardize = standardize, twostep = twostep, 
-                   baselineX = baselineX, diffX = diffX))	
+                   baselineX = baselineX, diffX = diffX,sample.weights=sample.weights))	
   
   fit$na.action <- attr(mf, "na.action")
   xlevels <- .getXlevels(mt, mf)
@@ -65,7 +68,7 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
 
 # CBPS.fit determines the proper routine (what kind of treatment) and calls the
 # approporiate function.  It also pre- and post-processes the data
-CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standardize, twostep, ...){
+CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standardize, twostep, sample.weights=sample.weights,...){
   # Special clause interprets T = 1 or 0 as a binary treatment, even if it is numeric
   if ((levels(factor(treat))[1] %in% c("FALSE","0",0)) & (levels(factor(treat))[2] %in% c("TRUE","1",1))
       & (length(levels(factor(treat))) == 2))
@@ -97,7 +100,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
   
   # When you take the svd, this is the identity matrix.  Perhaps
   # we forgot to work this in somewhere
-  XprimeX.inv<-ginv(t(X)%*%X)
+  XprimeX.inv<-ginv(t(sample.weights^.5*X)%*%(sample.weights^.5*X))
   
   # Determine the number of treatments
   if (is.factor(treat)) {
@@ -117,18 +120,18 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
       }
       else
       {
-        output<-CBPS.2Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, ATT, standardize = standardize, twostep = twostep)
+        output<-CBPS.2Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, ATT, standardize = standardize, twostep = twostep, sample.weights=sample.weights)
       }
     }
     
     if (no.treats == 3)
     {
-      output<-CBPS.3Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+      output<-CBPS.3Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep, sample.weights=sample.weights)
     }
     
     if (no.treats == 4)
     {
-      output<-CBPS.4Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+      output<-CBPS.4Treat(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep, sample.weights=sample.weights)
     }
     
     # Reverse the svd, centering and scaling
@@ -207,7 +210,7 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
   } else if (is.numeric(treat)) {
     # Warn if it seems like the user meant to input a categorical treatment
     if (length(unique(treat)) <= 4) warning("Treatment vector is numeric.  Interpreting as a continuous treatment.  To solve for a binary or multi-valued treatment, make treat a factor.")
-    output<-CBPS.Continuous(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep)
+    output<-CBPS.Continuous(treat, X, method, k, XprimeX.inv, bal.only, iterations, standardize = standardize, twostep = twostep, sample.weights=sample.weights)
     
     # Reverse svd, centering, and scaling
     d.inv<- svd1$d
@@ -230,6 +233,8 @@ CBPS.fit<-function(treat, X, baselineX, diffX, ATT, method, iterations, standard
   } else {
     stop("Treatment must be either a factor or numeric")
   }
+  
+  output$method<-method
   
   output
 }

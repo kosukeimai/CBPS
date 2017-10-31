@@ -1,16 +1,15 @@
 Package: CBPS
 Version: 0.14
-Date: 2017-04-20
+Date: 2017-10-01
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
-  person("Christian", "Fong", , "christianfong@stanford.edu", c("aut")),
+  person("Christian", "Fong", , "christianfong@stanford.edu", c("aut", "cre")),
   person("Marc", "Ratkovic", , "ratkovic@princeton.edu", c("aut")),
-  person("Kosuke", "Imai", , "kimai@Princeton.edu", c("aut", "cre")),
+  person("Kosuke", "Imai", , "kimai@Princeton.edu", c("aut")),
   person("Chad", "Hazlett", , "chazlett@ucla.edu", c("ctb")),
   person("Xiaolin", "Yang", , "xiaoliny@princeton.edu", c("ctb")),
   person("Sida", "Peng", , "sp947@cornell.edu", c("ctb"))
   )
-Maintainer: Christian Fong <christianfong@stanford.edu>
 Depends:
     R (>= 3.3.2),
     MASS,
