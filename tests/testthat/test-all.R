@@ -3,7 +3,7 @@ library(CBPS)
 library(testthat)
 context("tests CBPS")
 
-accuracy <- 0.000001
+accuracy <- 0.000005
 
 test_that("tests CBMS on the Lalonde data", {
   # set random seed
