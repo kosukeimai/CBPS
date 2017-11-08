@@ -3,7 +3,7 @@ library(CBPS)
 library(testthat)
 context("tests CBPS")
 
-accuracy <- 0.000005
+accuracy <- 0.00001
 
 test_that("tests CBMS on the Lalonde data", {
   # set random seed
@@ -24,8 +24,8 @@ test_that("tests CBMS on the Lalonde data", {
     expect_equal(x["age", "age"], 0.01208261, tolerance = accuracy)
     expect_equal(x["re74", "re75"], -0.0311205, tolerance = accuracy)
   } else {
-    expect_equal(x["age", "age"], 0.009385535, tolerance = accuracy)
-    expect_equal(x["re74", "re75"], -0.03392284, tolerance = accuracy)
+    expect_equal(x["age", "age"], 0.009398473, tolerance = accuracy)
+    expect_equal(x["re74", "re75"], -0.03388872, tolerance = accuracy)
     
   }
 })  
