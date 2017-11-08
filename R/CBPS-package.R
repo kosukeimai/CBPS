@@ -36,7 +36,7 @@ NULL
 #' @docType data
 #' @format A data frame consisting of 12 columns (including a treatment
 #' assignment vector) and 3212 observations.
-#' @references LaLonde, R.J. (1986). Evaluating the econometric evaulations of
+#' @references LaLonde, R.J. (1986). Evaluating the econometric evaluations of
 #' training programs with experimental data. American Economic Review 76, 4,
 #' 604-620.
 #' @source Data from the National Supported Work Study.  A benchmark matching

@@ -24,7 +24,7 @@ covariates for the econometric evaluation of training programs in LaLonde
 (1986).
 }
 \references{
-LaLonde, R.J. (1986). Evaluating the econometric evaulations of
+LaLonde, R.J. (1986). Evaluating the econometric evaluations of
 training programs with experimental data. American Economic Review 76, 4,
 604-620.
 }
