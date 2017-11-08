@@ -16,13 +16,13 @@ test_that("tests CBMS on the Lalonde data", {
   fit <- CBPS(treat ~ age + educ + re75 + re74 + I(re75==0) + I(re74==0), data = LaLonde, ATT = TRUE)
   x <- vcov(fit)
 
-  expect_equal(fit$coefficients[2], -0.06382203, tolerance = accuracy)
-  expect_equal(fit$coefficients["educ",1], -0.08655062, tolerance = accuracy)
+  expect_equal(fit$coefficients[2], -0.06388299, tolerance = accuracy)
+  expect_equal(fit$coefficients["educ",1], -0.08669678, tolerance = accuracy)
   expect_that(dim(x), is_equivalent_to(c(7,7)))
   
   if (R.Version()$arch != 'i386') {
-    expect_equal(x["age", "age"], 0.01208418, tolerance = accuracy)
-    expect_equal(x["re74", "re75"], -0.03098431, tolerance = accuracy)
+    expect_equal(x["age", "age"], 0.01208261, tolerance = accuracy)
+    expect_equal(x["re74", "re75"], -0.0311205, tolerance = accuracy)
   } else {
     expect_equal(x["age", "age"], 0.009385535, tolerance = accuracy)
     expect_equal(x["re74", "re75"], -0.03392284, tolerance = accuracy)
