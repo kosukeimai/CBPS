@@ -1,20 +1,63 @@
-# Make sure you are using the branch version of CBPSContinuous,
-# otherwise, you won't have access to Xtilde, Ttilde, etc.
-
-# object: a fitted cbps object
-# Y: the outcome
-# Z: the outcome covariates
-# delta: the coefficients for the post-weighting outcome model
-# tol: tolerance for choosing whether to improve conditioning of the "M" matrix prior to inversion. 
-# Equal to 1/(condition number), i.e. the smallest eigen value divided by the largest.
-# lambda: the amount to be added to the diagonal of M if the condition of the matrix
-# is worse than "tol".
-
+#' @title Calculate Variance-Covariance Matrix for Outcome Model
+#' 
+#' @description
+#' \code{vcov_outcome} Returns the variance-covariance matrix of the main
+#' parameters of a fitted CBPS object.
+#' 
+#' This adjusts the standard errors of the weighted regression of Y on Z for
+#' uncertainty in the weights.
+#' 
+#' ### @aliases vcov_outcome vcov_outcome.CBPSContinuous
+#' @param object A fitted CBPS object.
+#' @param Y The outcome.
+#' @param Z The covariates (including the treatment and an intercept term) that
+#' predict the outcome.
+#' @param delta The coefficients from regressing Y on Z, weighting by the
+#' cbpsfit$weights.
+#' @param tol Tolerance for choosing whether to improve conditioning of the "M"
+#' matrix prior to conversion.  Equal to 1/(condition number), i.e. the
+#' smallest eigenvalue divided by the largest.
+#' @param lambda The amount to be added to the diagonal of M if the condition
+#' of the matrix is worse than tol.
+#' @return A matrix of the estimated covariances between the parameter
+#' estimates in the weighted outcome regression, adjusted for uncertainty in
+#' the weights.
+#' @author Christian Fong, Chad Hazlett, and Kosuke Imai.
+#' @references Lunceford and Davididian 2004.
+#' @examples
+#' 
+#' ###
+#' ### Example: Variance-Covariance Matrix
+#' ###
+#' 
+#' ##Load the LaLonde data
+#' data(LaLonde)
+#' ## Estimate CBPS via logistic regression
+#' fit <- CBPS(treat ~ age + educ + re75 + re74 + I(re75==0) + I(re74==0), 
+#' 		    data = LaLonde, ATT = TRUE)
+#' ## Get the variance-covariance matrix.
+#' vcov(fit)
+#' 
+#' @export vcov_outcome
+#' 
 vcov_outcome<-function(object, Y, Z, delta, tol=10^(-5), lambda=0.01)
 {
   UseMethod("vcov_outcome")
 }
 
+#' vcov_outcome
+#' @param object A fitted CBPS object.
+#' @param Y The outcome.
+#' @param Z The covariates (including the treatment and an intercept term) that predict the outcome.
+#' @param delta The coefficients from regressing Y on Z, weighting by the cbpsfit$weights.
+#' @param tol Tolerance for choosing whether to improve conditioning of the "M"
+#' matrix prior to conversion.  Equal to 1/(condition number), i.e. the
+#' smallest eigenvalue divided by the largest.
+#' @param lambda The amount to be added to the diagonal of M if the condition of the matrix is worse than tol.
+#' @return Variance-Covariance Matrix for Outcome Model
+#'
+#' @export
+#'
 vcov_outcome.CBPSContinuous <- function(object, Y, Z, delta, tol=10^(-5), lambda=0.01){
   Xtilde <- object$Xtilde
   Ttilde <- object$Ttilde
