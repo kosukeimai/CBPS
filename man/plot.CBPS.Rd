@@ -38,8 +38,9 @@ Pearson correlation between the treatment and each covariate.  See
 }
 }
 \description{
-Plots the absolute difference in standardized means before and after
-weighting.
+This function plots the absolute difference in standardized means before and after
+weighting.  To access more sophisticated graphics for assessing covariate balance,
+consider using Noah Greifer's \code{cobalt} package.
 }
 \details{
 The "Before Weighting" plot gives the balance before weighting, and the
