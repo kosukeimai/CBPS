@@ -287,7 +287,8 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   
   class(beta.opt)<-"coef"
   output<-list("coefficients"=beta.opt, "sigmasq"=sigmasq,
-               "fitted.values"=dnorm(Ttilde,Xtilde%*%beta.tilde,sigmasq.tilde),"deviance"=deviance,
+               "fitted.values"=pmin(pmax(dnorm(Ttilde,Xtilde%*%beta.tilde,sigmasq.tilde),probs.min),1-probs.min),
+               "linear.predictor" = Xtilde%*%beta.tilde, "deviance"=deviance,
                "weights"=w.opt*sample.weights,"y"=treat,"x"=X, "Ttilde" = Ttilde,
                "Xtilde"=Xtilde, "beta.tilde" = beta.tilde, "sigmasq.tilde" = sigmasq.tilde,
                "converged"=opt1$conv,"J"=J.opt,"var"=vcov, "mle.J"=mle.J)

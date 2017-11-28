@@ -305,7 +305,8 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
   
   class(beta.opt) <- "coef"
   
-  output<-list("coefficients"=beta.opt,"fitted.values"=probs.opt,"deviance"=deviance,"weights"=w.opt*sample.weights, 
+  output<-list("coefficients"=beta.opt,"fitted.values"=probs.opt,"linear.predictor" = theta.opt,
+               "deviance"=deviance,"weights"=w.opt*sample.weights, 
                "y"=treat,"x"=X,"converged"=opt1$conv,"J"=J.opt,"var"=vcov, 
                "mle.J"=ifelse(twostep, gmm.func(mcoef, invV = this.invV)$loss, gmm.loss(mcoef)))
   
@@ -705,7 +706,8 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
   
   class(beta.opt) <- "coef"
   
-  output<-list("coefficients"=beta.opt,"fitted.values"=probs.opt,"deviance"=deviance,"weights"=sample.weights*w.opt, 
+  output<-list("coefficients"=beta.opt,"fitted.values"=probs.opt, "linear.predictor" = theta.opt,
+               "deviance"=deviance,"weights"=sample.weights*w.opt, 
                "y"=treat,"x"=X,"converged"=opt1$conv,"J"=J.opt,"var"=vcov,   
                "mle.J"=ifelse(twostep, gmm.func(mcoef, invV = this.invV)$loss, gmm.loss(mcoef)))
   
