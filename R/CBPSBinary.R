@@ -263,6 +263,11 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
       norm2<-sum((1-treat)*sample.weights/(1-probs.opt))
     }
   }
+  else {
+    norm1 <- 1
+    norm2 <- 1
+  }
+                
   if (ATT)
   {
     w.opt<-(treat == 1)*n/sum(treat == 1)/norm1 + abs((treat == 0)*n/sum(treat == 1)*((treat - probs.opt)/(1-probs.opt))/norm2)
