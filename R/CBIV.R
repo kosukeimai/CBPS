@@ -468,82 +468,11 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   output
 }
 
-vcov_outcome.CBIV <- function(object, Y, Ttilde, Ztilde, delta){
-  X <- object$x
-
-  N <- length(Y)
-  K <- ncol(X)
-  P <- ncol(Ttilde)
+vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde, delta, method = "tsls"){
+  if (!method %in% c("tsls", "wols", "ht")){
+    stop("Invalid method argument.  Use tsls, wols, or ht.")
+  }
   
-  w <- object$weights
-  beta <- object$coefficients
-  Z <- object$z
-  Tr <- object$y
-  invSigma <- object$invSigma
-  pZ <- mean(object$z)
-  
-  pi.min<-10^-6
-  
-  baseline.prob <- (1 + exp(X%*%beta[,1]) + exp(X%*%beta[,2]))^-1
-  pi.c<-pmin(pmax(exp(X%*%beta[,1])*baseline.prob,pi.min),1-pi.min)
-  pi.a<-pmin(pmax(exp(X%*%beta[,2])*baseline.prob,pi.min),1-pi.min)
-  pi.n<-pmin(pmax(baseline.prob,pi.min),1-pi.min)
-  
-  sums<-pi.c+pi.a+pi.n
-  pi.c<-pi.c/sums
-  pi.a<-pi.a/sums
-  pi.n<-pi.n/sums
-  
-  mtheta <- t(as.vector(w*(Y - Ttilde%*%delta))*Ztilde)
-  
-  gbeta <- rbind(t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*(1-Tr)/(1-pi.a) - 1)*pi.c)*X),
-                 t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*Tr/pi.a - 1)*pi.a)*X),
-                 t(as.vector(Z*Tr/(pZ*(pi.c + pi.a)) - 1)*X), 
-                 t(as.vector((1-Z)*Tr/((1-pZ)*pi.a) - 1)*X),
-                 t(as.vector(Z*(1-Tr)/(pZ*pi.n) - 1)*X), 
-                 t(as.vector((1-Z)*(1-Tr)/((1-pZ)*(pi.c + pi.n)) - 1)*X))
-  
-  gtheta <- rbind(mtheta, gbeta)
-  
-  W <- rbind(cbind(diag(P), matrix(0, nrow = P, ncol = ncol(invSigma))), 
-             cbind(matrix(0, nrow = nrow(invSigma), ncol = P), invSigma))
-
-  Mdelta <- t(Ztilde)%*%(-w*Ttilde)/N
-  
-  dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
-              as.vector(pi.a/pi.c)*X)
-  
-  Mbeta <- t(Ztilde*as.vector(Y - Ttilde%*%delta))%*%dw/N
-  
-  G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
-                   t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N),
-             cbind(t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N,
-                   t(as.vector((Z*Tr*pi.c/(1-pi.n)^2 + pi.a - 1)*pi.a)*X)%*%X/N),
-             cbind(t(as.vector(-Z*Tr*pi.c*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N,
-                   t(as.vector(-Z*Tr*pi.a*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N),
-             cbind(t(as.vector((1-Z)*Tr*pi.c/((1-pZ)*pi.a))*X)%*%X/N,
-                   t(as.vector(-(1-Z)*Tr*(1-pi.a)/((1-pZ)*pi.a))*X)%*%X/N),
-             cbind(t(as.vector(Z*(1-Tr)*pi.c/(pZ*pi.n))*X)%*%X/N,
-                   t(as.vector(Z*(1-Tr)*pi.a/(pZ*pi.n))*X)%*%X/N),
-             cbind(t(as.vector(-(1-Z)*(1-Tr)*pi.c*pi.a/((1-pZ)*(1-pi.a)^2))*X)%*%X/N,
-                   t(as.vector((1-Z)*(1-Tr)*pi.a/((1-pZ)*(1-pi.a)))*X)%*%X/N))
-  
-  Gtilde <- rbind(cbind(Mdelta, Mbeta), cbind(matrix(0, nrow = nrow(G), ncol = P), G))
-  
-  outer.inv <- t(Gtilde)%*%W%*%Gtilde
-  
-  #cond.num <- svd(outer.inv)$d[1]/svd(outer.inv)$d[nrow(outer.inv)]
-  #if (cond.num>(1/tol)){outer.inv <- outer.inv+lambda*diag(rep(1,nrow(outer.inv)))}
-  
-  outer <- ginv(outer.inv)
-  inner <- gtheta%*%t(gtheta)/N
-  
-  V <- outer %*% t(Gtilde) %*% W %*% inner %*% W %*% Gtilde %*% outer
-
-  return(V/N)
-}
-
-wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   X <- object$x
   
   N <- length(Y)
@@ -557,12 +486,14 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   invSigma <- object$invSigma
   pZ <- mean(object$z)
   
-  Zind <- which(apply(Ztilde, 2, function(u) all(u == Z)))
-  Intind <- which(apply(Ztilde, 2, function(u) all(u == 1)))
-  Xtilde <- Ztilde[,-c(Zind,Intind),drop=FALSE]
-  deltaXtilde <- delta[-c(Zind,Intind)]
-  if (length(Xtilde) > 0){
-    Ztilde[,-c(Zind,Intind)] <- Xtilde*w
+  if (method == "wols"){
+    Zind <- which(apply(Ztilde, 2, function(u) all(u == Z)))
+    Intind <- which(apply(Ztilde, 2, function(u) all(u == 1)))
+    Xtilde <- Ztilde[,-c(Zind,Intind),drop=FALSE]
+    deltaXtilde <- delta[-c(Zind,Intind)]
+    if (length(Xtilde) > 0){
+      Ztilde[,-c(Zind,Intind)] <- Xtilde*w
+    }
   }
   
   pi.min<-10^-6
@@ -577,7 +508,15 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   pi.a<-pi.a/sums
   pi.n<-pi.n/sums
   
-  mtheta <- t(as.vector((w*Y - Ztilde%*%delta))*Ztilde)
+  if (method == "tsls"){
+    mtheta <- t(as.vector(w*(Y - Ttilde%*%delta))*Ztilde)
+  }
+  if (method == "wols"){
+    mtheta <- t(as.vector((w*Y - Ztilde%*%delta))*Ztilde)
+  }
+  if (method == "ht"){
+    mtheta <- t(1/pi.c*as.vector(Z*Y/pi.c - (1-Z)*Y/(1-pi.c)) - delta)
+  }
   
   gbeta <- rbind(t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*(1-Tr)/(1-pi.a) - 1)*pi.c)*X),
                  t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*Tr/pi.a - 1)*pi.a)*X),
@@ -591,20 +530,29 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   W <- rbind(cbind(diag(P), matrix(0, nrow = P, ncol = ncol(invSigma))), 
              cbind(matrix(0, nrow = nrow(invSigma), ncol = P), invSigma))
   
-  Mdelta <- t(-Ztilde)%*%Ztilde/N
-
+  
   dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
               as.vector(pi.a/pi.c)*X)
-
-  Mbeta <- matrix(0, nrow = P, ncol = 2*K)
-  Mbeta[Intind,] <- t(as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N
-  Mbeta[Zind,] <- t(Z*(Y - Xtilde%*%deltaXtilde))%*%dw/N
-  if (length(Xtilde) > 0){
-    Mbeta[-c(Intind,Zind),] <- t(Xtilde*as.vector(w*Y - Ztilde%*%delta) + 
-                                 w*Xtilde*as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N   
+  
+  if (method == "tsls"){
+    Mdelta <- t(Ztilde)%*%(-w*Ttilde)/N
+    Mbeta <- t(Ztilde*as.vector(Y - Ttilde%*%delta))%*%dw/N 
+  }
+  if (method == "wols"){
+    Mdelta <- t(-Ztilde)%*%Ztilde/N
+    Mbeta <- matrix(0, nrow = P, ncol = 2*K)
+    Mbeta[Intind,] <- t(as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N
+    Mbeta[Zind,] <- t(Z*(Y - Xtilde%*%deltaXtilde))%*%dw/N
+    if (length(Xtilde) > 0){
+      Mbeta[-c(Intind,Zind),] <- t(Xtilde*as.vector(w*Y - Ztilde%*%delta) + 
+                                     w*Xtilde*as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N   
+    }
+  }
+  if (method == "ht"){
+    Mdelta <- matrix(-1, nrow = 1, ncol = 1)
+    Mbeta <- matrix(apply(as.vector(Y*Z/pZ - Y*(1-Z)/(1-pZ))*dw, 2, mean), nrow = 1, ncol = ncol(dw))
   }
   
-  #Mbeta <- (t(Ztilde*as.vector(Y))%*%dw)/N
   
   G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
                    t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N),
@@ -622,67 +570,11 @@ wols_vcov_outcome.CBIV <- function(object, Y, Ztilde, delta){
   Gtilde <- rbind(cbind(Mdelta, Mbeta), cbind(matrix(0, nrow = nrow(G), ncol = P), G))
   
   outer.inv <- t(Gtilde)%*%W%*%Gtilde
+  
   outer <- ginv(outer.inv)
   inner <- gtheta%*%t(gtheta)/N
   
   V <- outer %*% t(Gtilde) %*% W %*% inner %*% W %*% Gtilde %*% outer
   
   return(V/N)
-}
-
-ht_vcov_outcome.CBIV <- function(object, Y){
-  X <- object$x
-  
-  N <- length(Y)
-    
-  beta <- object$coefficients
-  Z <- object$z
-  Tr <- object$y
-  invSigma <- object$invSigma
-  pZ <- mean(object$z)
-  
-  pi.min<-10^-6
-  
-  baseline.prob <- (1 + exp(X%*%beta[,1]) + exp(X%*%beta[,2]))^-1
-  pi.c<-pmin(pmax(exp(X%*%beta[,1])*baseline.prob,pi.min),1-pi.min)
-  pi.a<-pmin(pmax(exp(X%*%beta[,2])*baseline.prob,pi.min),1-pi.min)
-  pi.n<-pmin(pmax(baseline.prob,pi.min),1-pi.min)
-  
-  sums<-pi.c+pi.a+pi.n
-  pi.c<-pi.c/sums
-  pi.a<-pi.a/sums
-  pi.n<-pi.n/sums
-  
-  gbeta <- rbind(t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*(1-Tr)/(1-pi.a) - 1)*pi.c)*X),
-                 t(as.vector((Z*Tr/(1-pi.n) + (1-Z)*Tr/pi.a - 1)*pi.a)*X),
-                 t(as.vector(Z*Tr/(pZ*(pi.c + pi.a)) - 1)*X), 
-                 t(as.vector((1-Z)*Tr/((1-pZ)*pi.a) - 1)*X),
-                 t(as.vector(Z*(1-Tr)/(pZ*pi.n) - 1)*X), 
-                 t(as.vector((1-Z)*(1-Tr)/((1-pZ)*(pi.c + pi.n)) - 1)*X))
-
-  G <- rbind(cbind(t(as.vector((Z*Tr*pi.a/(1-pi.n)^2 + (1-Z)*(1-Tr)*pi.n/(1-pi.a)^2 + pi.c - 1)*pi.c)*X)%*%X/N,
-                   t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N),
-             cbind(t(as.vector((1 - Z*Tr/(1-pi.n)^2)*pi.c*pi.a)*X)%*%X/N,
-                   t(as.vector((Z*Tr*pi.c/(1-pi.n)^2 + pi.a - 1)*pi.a)*X)%*%X/N),
-             cbind(t(as.vector(-Z*Tr*pi.c*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N,
-                   t(as.vector(-Z*Tr*pi.a*pi.n/(pZ*(1-pi.n)^2))*X)%*%X/N),
-             cbind(t(as.vector((1-Z)*Tr*pi.c/((1-pZ)*pi.a))*X)%*%X/N,
-                   t(as.vector(-(1-Z)*Tr*(1-pi.a)/((1-pZ)*pi.a))*X)%*%X/N),
-             cbind(t(as.vector(Z*(1-Tr)*pi.c/(pZ*pi.n))*X)%*%X/N,
-                   t(as.vector(Z*(1-Tr)*pi.a/(pZ*pi.n))*X)%*%X/N),
-             cbind(t(as.vector(-(1-Z)*(1-Tr)*pi.c*pi.a/((1-pZ)*(1-pi.a)^2))*X)%*%X/N,
-                   t(as.vector((1-Z)*(1-Tr)*pi.a/((1-pZ)*(1-pi.a)))*X)%*%X/N))
-  
-  outer.inv <- t(G)%*%invSigma%*%G
-  
-  outer <- ginv(outer.inv)
-  inner <- gbeta%*%t(gbeta)/N
-  
-  U <- outer %*% t(G) %*% invSigma %*% inner %*% invSigma %*% G %*% outer
-  
-  dw <- cbind(as.vector(-(1-pi.c)/pi.c)*X,
-              as.vector(pi.a/pi.c)*X)
-  V <- apply(as.vector(Y*Z/pZ - Y*(1-Z)/(1-pZ))*dw, 2, mean)
-
-  return(t(V)%*%U%*%V/N)
 }
