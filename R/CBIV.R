@@ -468,12 +468,16 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   output
 }
 
-vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde, delta, method = "tsls"){
+vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde = NULL, delta, method = "tsls"){
   if (!method %in% c("tsls", "wols", "ht")){
     stop("Invalid method argument.  Use tsls, wols, or ht.")
   }
   
   X <- object$x
+  
+  if (method == "ht"){
+    Ztilde = matrix(1, nrow = length(Y), ncol = 1)
+  }
   
   N <- length(Y)
   K <- ncol(X)
@@ -485,6 +489,16 @@ vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde, delta, method = 
   Tr <- object$y
   invSigma <- object$invSigma
   pZ <- mean(object$z)
+  
+  if (method == "wols"){
+    Zind <- which(apply(Ztilde, 2, function(u) all(u == Z)))
+    Intind <- which(apply(Ztilde, 2, function(u) all(u == 1)))
+    Xtilde <- Ztilde[,-c(Zind,Intind),drop=FALSE]
+    deltaXtilde <- delta[-c(Zind,Intind)]
+    if (length(Xtilde) > 0){
+      Ztilde[,-c(Zind,Intind)] <- Xtilde*w
+    }
+  }  
   
   pi.min<-10^-6
   
@@ -530,7 +544,13 @@ vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde, delta, method = 
   }
   if (method == "wols"){
     Mdelta <- t(-Ztilde)%*%Ztilde/N
-    Mbeta <- t(Ztilde*as.vector(Y))%*%dw/N
+    Mbeta <- matrix(0, nrow = P, ncol = 2*K)
+    Mbeta[Intind,] <- t(as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N
+    Mbeta[Zind,] <- t(Z*(Y - Xtilde%*%deltaXtilde))%*%dw/N
+    if (length(Xtilde) > 0){
+      Mbeta[-c(Intind,Zind),] <- t(Xtilde*as.vector(w*Y - Ztilde%*%delta) + 
+                                     w*Xtilde*as.vector(Y - Xtilde%*%deltaXtilde))%*%dw/N   
+    }
   }
   if (method == "ht"){
     Mdelta <- matrix(-1, nrow = 1, ncol = 1)
