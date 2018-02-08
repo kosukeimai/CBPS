@@ -13,3 +13,5 @@ version date      description
 0.13 	12/27/16  Fixes bug for CBPSOptimal, changes balance conditions for CBPS Continuous, and fixes issues with covariance matrix of coefficients.
 0.14	10/01/17  Added hdCBPS and analytic covariance for versions.  Changed behavior for over-identified continuous CBPS when weighting matrix is singular.
 0.15	11/16/17  Added access to linear predictor.  Fixed bug with CBPSBinary caused by the introduction of sampling weights in 0.14.  Switched to using Roxygen.
+0.16	12/19/17  Fixed bug for binary CBPS when stanardize is set to FALSE.  Fixed test tolerance for Solaris.
+0.17	01/29/18  Reuploaded to CRAN.
