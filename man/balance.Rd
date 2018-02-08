@@ -17,7 +17,8 @@ Returns a list of two matrices, "original" (before weighting) and
 }
 \description{
 Returns the mean and standardized mean associated with each treatment group,
-before and after weighting.
+before and after weighting.  To access more comprehensive diagnotistics for 
+assessing covariate balance, consider using Noah Greifer's \code{cobalt} package.
 }
 \details{
 For binary and multi-valued treatments as well as marginal structural

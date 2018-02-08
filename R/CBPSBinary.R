@@ -311,7 +311,8 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
   Omega<-(W1%*%t(W1)/n)
   vcov<-ginv(G%*%W%*%t(G))%*%G%*%W%*%Omega%*%W%*%t(G)%*%ginv(G%*%W%*%t(G))
   
-  output<-list("coefficients"=matrix(beta.opt, ncol=1),"fitted.values"=probs.opt,"deviance"=deviance,"weights"=w.opt,
+  output<-list("coefficients"=matrix(beta.opt, ncol=1),"fitted.values"=probs.opt, "linear.predictor" = X%*%beta.opt,
+               "deviance"=deviance,"weights"=w.opt,
                "y"=treat,"x"=X,"converged"=opt1$conv,"J"=J.opt,"var"=vcov, 
                "mle.J"=ifelse(twostep, gmm.func(glm1$coef, invV = this.invV)$loss, gmm.loss(glm1$coef)))
   

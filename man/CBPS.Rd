@@ -61,6 +61,7 @@ E(Y(1)-Y(0)|X).}
 }
 \value{
 \item{fitted.values}{The fitted propensity score}
+\item{linear.predictor}{X * beta}
 
 \item{deviance}{Minus twice the log-likelihood of the CBPS fit}
 \item{weights}{The optimal weights.  Let \eqn{\pi_i = f(T_i | X_i)}{\pi_i =

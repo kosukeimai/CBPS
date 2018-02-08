@@ -61,6 +61,7 @@
 #' @param ... Other parameters to be passed through to \code{optim()}.
 #' 
 #' @return \item{fitted.values}{The fitted propensity score}
+#' \item{linear.predictor}{X * beta}
 #' 
 #' \item{deviance}{Minus twice the log-likelihood of the CBPS fit}
 #' \item{weights}{The optimal weights.  Let \eqn{\pi_i = f(T_i | X_i)}{\pi_i =
@@ -599,8 +600,10 @@ vcov.CBPS<-function(object,...){
 
 #' Plotting Covariate Balancing Propensity Score Estimation
 #' 
-#' Plots the absolute difference in standardized means before and after
-#' weighting.
+#' 
+#' This function plots the absolute difference in standardized means before and after
+#' weighting.  To access more sophisticated graphics for assessing covariate balance,
+#' consider using Noah Greifer's \code{cobalt} package.
 #' 
 #' The "Before Weighting" plot gives the balance before weighting, and the
 #' "After Weighting" plot gives the balance after weighting.
@@ -770,7 +773,8 @@ plot.CBPSContinuous<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, 
 #' Optimal Covariate Balance
 #' 
 #' Returns the mean and standardized mean associated with each treatment group,
-#' before and after weighting.
+#' before and after weighting.  To access more comprehensive diagnotistics for 
+#' assessing covariate balance, consider using Noah Greifer's \code{cobalt} package.
 #' 
 #' For binary and multi-valued treatments as well as marginal structural
 #' models, each of the matrices' rows are the covariates and whose columns are
