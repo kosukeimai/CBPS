@@ -16,6 +16,7 @@ if (grepl('solaris',R.version$platform, ignore.case = TRUE)) {
 if (grepl('solaris',R.version$os, ignore.case = TRUE)) {
   accuracy <- 0.005
 }
+accuracy <- ifelse(capabilities("long.double"), accuracy, 0.05)
 
 test_that("tests CBMS on the Lalonde data", {
   # set random seed
