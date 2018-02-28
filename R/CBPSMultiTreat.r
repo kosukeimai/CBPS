@@ -9,6 +9,8 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
   T3<-as.numeric(treat==treat.names[3])
   
   sample.weights<-sample.weights/mean(sample.weights)
+  wtX <- sample.weights*X
+  
   XprimeX.inv<-ginv(t(sample.weights^.5*X)%*%(sample.weights^.5*X))
   
   ##The gmm objective function--given a guess of beta, constructs the GMM J statistic.
@@ -34,13 +36,13 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
     
     
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(sample.weights*X)%*%w.curr
+    w.curr.del<-1/n*t(wtX)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     ##Generate g-bar, as in the paper.
-    gbar<-c(1/n*t(sample.weights*X)%*%(T2-probs.curr[,2]), 
-            1/n*t(sample.weights*X)%*%(T3-probs.curr[,3]),
+    gbar<-c(1/n*t(wtX)%*%(T2-probs.curr[,2]), 
+            1/n*t(wtX)%*%(T3-probs.curr[,3]),
             w.curr.del)
     
     
@@ -48,16 +50,16 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
     {
       ##Generate the covariance matrix used in the GMM estimate.
       ##Was for the initial version that calculates the analytic variances.    
-      X.1.1<-sample.weights*X*(probs.curr[,2]*(1-probs.curr[,2]))
-      X.1.2<-sample.weights*X*(-probs.curr[,2]*probs.curr[,3])
-      X.1.3<-sample.weights*X*-1
-      X.1.4<-sample.weights*X*1
-      X.2.2<-sample.weights*X*(probs.curr[,3]*(1-probs.curr[,3]))
-      X.2.3<-sample.weights*X*-1
-      X.2.4<-sample.weights*X*-1
-      X.3.3<-sample.weights*X*(4*probs.curr[,1]^-1+probs.curr[,2]^-1+probs.curr[,3]^-1)
-      X.3.4<-sample.weights*X*(-probs.curr[,2]^-1+probs.curr[,3]^-1)
-      X.4.4<-sample.weights*X*(probs.curr[,2]^-1+probs.curr[,3]^-1)
+      X.1.1<-wtX*(probs.curr[,2]*(1-probs.curr[,2]))
+      X.1.2<-wtX*(-probs.curr[,2]*probs.curr[,3])
+      X.1.3<-wtX*-1
+      X.1.4<-wtX*1
+      X.2.2<-wtX*(probs.curr[,3]*(1-probs.curr[,3]))
+      X.2.3<-wtX*-1
+      X.2.4<-wtX*-1
+      X.3.3<-wtX*(4*probs.curr[,1]^-1+probs.curr[,2]^-1+probs.curr[,3]^-1)
+      X.3.4<-wtX*(-probs.curr[,2]^-1+probs.curr[,3]^-1)
+      X.4.4<-wtX*(probs.curr[,2]^-1+probs.curr[,3]^-1)
       
       V<-1/n*rbind(cbind(t(X.1.1)%*%X,t(X.1.2)%*%X,t(X.1.3)%*%X,t(X.1.4)%*%X),
                    cbind(t(X.1.2)%*%X,t(X.2.2)%*%X,t(X.2.3)%*%X,t(X.2.4)%*%X),
@@ -90,7 +92,8 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
                   T2/probs.curr[,2] - T3/probs.curr[,3])/n
     
     ##Generate mean imbalance.
-    loss1<-sum(diag(t(w.curr)%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr)))
+    wtXprimew <- t(wtX)%*%(w.curr)
+    loss1<-sum(diag(t(wtXprimew)%*%XprimeX.inv%*%wtXprimew))
     loss1
   }
   
@@ -117,23 +120,23 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
     
     
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(sample.weights*X)%*%w.curr
+    w.curr.del<-1/n*t(wtX)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     ##Generate g-bar, as in the paper.
-    gbar<-c(1/n*t(sample.weights*X)%*%(T2-probs.curr[,2]), 
-            1/n*t(sample.weights*X)%*%(T3-probs.curr[,3]),
+    gbar<-c(1/n*t(wtX)%*%(T2-probs.curr[,2]), 
+            1/n*t(wtX)%*%(T3-probs.curr[,3]),
             w.curr.del)
     
-    dgbar<-rbind(cbind(1/n*t(-sample.weights*X*probs.curr[,2]*(1-probs.curr[,2]))%*%X,
-                       1/n*t(sample.weights*X*probs.curr[,2]*probs.curr[,3])%*%X,
-                       1/n*t(sample.weights*X*(2*T1*probs.curr[,2]/probs.curr[,1] + T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3]))%*%X,
-                       1/n*t(sample.weights*X*(-T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3]))%*%X),
-                 cbind(1/n*t(sample.weights*X*probs.curr[,2]*probs.curr[,3])%*%X,
-                       1/n*t(-sample.weights*X*probs.curr[,3]*(1-probs.curr[,3]))%*%X,
-                       1/n*t(sample.weights*X*(2*T1*probs.curr[,3]/probs.curr[,1] - T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3]))%*%X,
-                       1/n*t(sample.weights*X*(T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3]))%*%X))
+    dgbar<-rbind(cbind(1/n*t(-wtX*probs.curr[,2]*(1-probs.curr[,2]))%*%X,
+                       1/n*t(wtX*probs.curr[,2]*probs.curr[,3])%*%X,
+                       1/n*t(wtX*(2*T1*probs.curr[,2]/probs.curr[,1] + T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3]))%*%X,
+                       1/n*t(wtX*(-T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3]))%*%X),
+                 cbind(1/n*t(wtX*probs.curr[,2]*probs.curr[,3])%*%X,
+                       1/n*t(-wtX*probs.curr[,3]*(1-probs.curr[,3]))%*%X,
+                       1/n*t(wtX*(2*T1*probs.curr[,3]/probs.curr[,1] - T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3]))%*%X,
+                       1/n*t(wtX*(T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3]))%*%X))
                  
     out<-2*dgbar%*%invV%*%gbar
     out
@@ -154,16 +157,19 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
     w.curr<-cbind(2*T1/probs.curr[,1] - T2/probs.curr[,2] - T3/probs.curr[,3],
                   T2/probs.curr[,2] - T3/probs.curr[,3])/n
     
-    dw.beta1<-cbind(t(sample.weights*X*(2*T1*probs.curr[,2]/probs.curr[,1] + T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3])),
-                    t(sample.weights*X*(-T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3])))/n
-    dw.beta2<-cbind(t(sample.weights*X*(2*T1*probs.curr[,3]/probs.curr[,1] - T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3])),
-                    t(sample.weights*X*(T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3])))/n
+    dw.beta1<-cbind(t(wtX*(2*T1*probs.curr[,2]/probs.curr[,1] + T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3])),
+                    t(wtX*(-T2*(1-probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3])))/n
+    dw.beta2<-cbind(t(wtX*(2*T1*probs.curr[,3]/probs.curr[,1] - T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3])),
+                    t(wtX*(T2*probs.curr[,3]/probs.curr[,2] + T3*(1-probs.curr[,3])/probs.curr[,3])))/n
+
     ##Generate mean imbalance.
-    loss1<-diag(t(w.curr)%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr))
-    out.1<-2*dw.beta1[,1:n]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,1]) + 
-      2*dw.beta1[,(n+1):(2*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,2])
-    out.2<-2*dw.beta2[,1:n]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,1]) +
-      2*dw.beta2[,(n+1):(2*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,2])
+    wtXprimew <- t(wtX)%*%(w.curr)
+    
+    loss1<-diag(t(wtXprimew)%*%XprimeX.inv%*%wtXprimew)
+    out.1<-2*dw.beta1[,1:n]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,1]) + 
+      2*dw.beta1[,(n+1):(2*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,2])
+    out.2<-2*dw.beta2[,1:n]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,1]) +
+      2*dw.beta2[,(n+1):(2*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,2])
     out<-c(out.1, out.2)
     out
   }
@@ -283,14 +289,14 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
   
   W<-gmm.func(beta.opt)$invV
 
-  XG.1.1<-t(-X*sample.weights*probs.opt[,2]*(1-probs.opt[,2]))%*%X
-  XG.1.2<-t(X*sample.weights*probs.opt[,2]*probs.opt[,3])%*%X
-  XG.1.3<-t(X*sample.weights*(2*T1*probs.opt[,2]/probs.opt[,1] + T2*(1-probs.opt[,2])/probs.opt[,2] - T3*probs.opt[,2]/probs.opt[,3]))%*%X
-  XG.1.4<-t(X*sample.weights*(-T2*(1-probs.opt[,2])/probs.opt[,2] - T3*probs.opt[,2]/probs.opt[,3]))%*%X
-  XG.2.1<-t(X*sample.weights*probs.opt[,2]*probs.opt[,3])%*%X
-  XG.2.2<-t(-X*sample.weights*probs.opt[,3]*(1-probs.opt[,3]))%*%X
-  XG.2.3<-t(X*sample.weights*(2*T1*probs.opt[,3]/probs.opt[,1] - T2*probs.opt[,3]/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]))%*%X
-  XG.2.4<-t(X*sample.weights*(T2*probs.opt[,3]/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]))%*%X
+  XG.1.1<-t(-wtX*probs.opt[,2]*(1-probs.opt[,2]))%*%X
+  XG.1.2<-t(wtX*probs.opt[,2]*probs.opt[,3])%*%X
+  XG.1.3<-t(wtX*(2*T1*probs.opt[,2]/probs.opt[,1] + T2*(1-probs.opt[,2])/probs.opt[,2] - T3*probs.opt[,2]/probs.opt[,3]))%*%X
+  XG.1.4<-t(wtX*(-T2*(1-probs.opt[,2])/probs.opt[,2] - T3*probs.opt[,2]/probs.opt[,3]))%*%X
+  XG.2.1<-t(wtX*probs.opt[,2]*probs.opt[,3])%*%X
+  XG.2.2<-t(-wtX*probs.opt[,3]*(1-probs.opt[,3]))%*%X
+  XG.2.3<-t(wtX*(2*T1*probs.opt[,3]/probs.opt[,1] - T2*probs.opt[,3]/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]))%*%X
+  XG.2.4<-t(wtX*(T2*probs.opt[,3]/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]))%*%X
   G<-1/n*rbind(cbind(XG.1.1,XG.1.2,XG.1.3,XG.1.4),cbind(XG.2.1,XG.2.2,XG.2.3,XG.2.4))
   
   XW.1<-X*(T2-probs.opt[,2])*sample.weights^.5
@@ -299,8 +305,10 @@ CBPS.3Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
   XW.4<-X*(T2/probs.opt[,2] - T3/probs.opt[,3])*sample.weights^.5
   W1<-rbind(t(XW.1),t(XW.2),t(XW.3),t(XW.4))
   Omega<-1/n*(W1%*%t(W1))
-  vcov<-ginv(G%*%W%*%t(G))%*%G%*%W%*%Omega%*%W%*%t(G)%*%ginv(G%*%W%*%t(G))
-  
+
+  GWGinvGW <- ginv(G%*%W%*%t(G))%*%G%*%W
+  vcov <- GWGinvGW%*%Omega%*%t(GWGinvGW)
+    
   colnames(probs.opt)<-treat.names
   
   class(beta.opt) <- "coef"
@@ -327,6 +335,8 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
   T4<-as.numeric(treat==treat.names[4])
   
   sample.weights<-sample.weights/mean(sample.weights)
+  wtX <- sample.weights*X
+  
   XprimeX.inv<-ginv(t(sample.weights^.5*X)%*%(sample.weights^.5*X))
   
   ##The gmm objective function--given a guess of beta, constructs the GMM J statistic.
@@ -352,15 +362,16 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
                   T1/probs.curr[,1] - T2/probs.curr[,2] - T3/probs.curr[,3] + T4/probs.curr[,4],
                   -T1/probs.curr[,1] + T2/probs.curr[,2] - T3/probs.curr[,3] + T4/probs.curr[,4])    
     
+    
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(sample.weights*X)%*%w.curr
+    w.curr.del<-1/n*t(wtX)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     ##Generate g-bar, as in the paper.
-    gbar<-c(1/n*t(sample.weights*X)%*%(T2-probs.curr[,2]), 
-            1/n*t(sample.weights*X)%*%(T3-probs.curr[,3]),
-            1/n*t(sample.weights*X)%*%(T4-probs.curr[,4]),
+    gbar<-c(1/n*t(wtX)%*%(T2-probs.curr[,2]), 
+            1/n*t(wtX)%*%(T3-probs.curr[,3]),
+            1/n*t(wtX)%*%(T4-probs.curr[,4]),
             w.curr.del)
     
     
@@ -368,26 +379,26 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
     {
       ##Generate the covariance matrix used in the GMM estimate.
       ##Was for the initial version that calculates the analytic variances.		
-      X.1.1<-sample.weights*X*(probs.curr[,2]*(1-probs.curr[,2]))
-      X.1.2<-sample.weights*X*(-probs.curr[,2]*probs.curr[,3])
-      X.1.3<-sample.weights*X*(-probs.curr[,2]*probs.curr[,4])
-      X.1.4<-sample.weights*X
-      X.1.5<-sample.weights*X*(-1)
-      X.1.6<-sample.weights*X
-      X.2.2<-sample.weights*X*(probs.curr[,3]*(1-probs.curr[,3]))
-      X.2.3<-sample.weights*X*(-probs.curr[,3]*probs.curr[,4])
-      X.2.4<-sample.weights*X*(-1)
-      X.2.5<-sample.weights*X*(-1)
-      X.2.6<-sample.weights*X*(-1)
-      X.3.3<-sample.weights*X*(probs.curr[,4]*(1-probs.curr[,4]))
-      X.3.4<-sample.weights*X*(-1)
-      X.3.5<-sample.weights*X
-      X.3.6<-sample.weights*X
-      X.4.4<-sample.weights*X*(probs.curr[,1]^-1+probs.curr[,2]^-1+probs.curr[,3]^-1+probs.curr[,4]^-1)
-      X.4.5<-sample.weights*X*(probs.curr[,1]^-1-probs.curr[,2]^-1+probs.curr[,3]^-1-probs.curr[,4]^-1)
-      X.4.6<-sample.weights*X*(-probs.curr[,1]^-1+probs.curr[,2]^-1+probs.curr[,3]^-1-probs.curr[,4]^-1)
+      X.1.1<-wtX*(probs.curr[,2]*(1-probs.curr[,2]))
+      X.1.2<-wtX*(-probs.curr[,2]*probs.curr[,3])
+      X.1.3<-wtX*(-probs.curr[,2]*probs.curr[,4])
+      X.1.4<-wtX
+      X.1.5<-wtX*(-1)
+      X.1.6<-wtX
+      X.2.2<-wtX*(probs.curr[,3]*(1-probs.curr[,3]))
+      X.2.3<-wtX*(-probs.curr[,3]*probs.curr[,4])
+      X.2.4<-wtX*(-1)
+      X.2.5<-wtX*(-1)
+      X.2.6<-wtX*(-1)
+      X.3.3<-wtX*(probs.curr[,4]*(1-probs.curr[,4]))
+      X.3.4<-wtX*(-1)
+      X.3.5<-wtX
+      X.3.6<-wtX
+      X.4.4<-wtX*(probs.curr[,1]^-1+probs.curr[,2]^-1+probs.curr[,3]^-1+probs.curr[,4]^-1)
+      X.4.5<-wtX*(probs.curr[,1]^-1-probs.curr[,2]^-1+probs.curr[,3]^-1-probs.curr[,4]^-1)
+      X.4.6<-wtX*(-probs.curr[,1]^-1+probs.curr[,2]^-1+probs.curr[,3]^-1-probs.curr[,4]^-1)
       X.5.5<-X.4.4
-      X.5.6<-X*(-probs.curr[,1]^-1-probs.curr[,2]^-1+probs.curr[,3]^-1+probs.curr[,4]^-1)
+      X.5.6<-wtX*(-probs.curr[,1]^-1-probs.curr[,2]^-1+probs.curr[,3]^-1+probs.curr[,4]^-1)
       X.6.6<-X.4.4
       
       V<-1/n*rbind(cbind(t(X.1.1)%*%X,t(X.1.2)%*%X,t(X.1.3)%*%X,t(X.1.4)%*%X,t(X.1.5)%*%X,t(X.1.6)%*%X),
@@ -423,7 +434,8 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
                   -T1/probs.curr[,1] + T2/probs.curr[,2] - T3/probs.curr[,3] + T4/probs.curr[,4])/n
     
     ##Generate mean imbalance.
-    loss1<-sum(diag(t(w.curr)%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr)))
+    wtXprimew <- t(sample.weights*X)%*%(w.curr)
+    loss1<-sum(diag(t(wtXprimew)%*%XprimeX.inv%*%wtXprimew))
     loss1
   }
   
@@ -450,38 +462,37 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
                   T1/probs.curr[,1] - T2/probs.curr[,2] - T3/probs.curr[,3] + T4/probs.curr[,4],
                   -T1/probs.curr[,1] + T2/probs.curr[,2] - T3/probs.curr[,3] + T4/probs.curr[,4])
     
-    
     ##Generate the vector of mean imbalance by weights.
-    w.curr.del<-1/n*t(sample.weights*X)%*%w.curr
+    w.curr.del<-1/n*t(wtX)%*%w.curr
     w.curr.del<-as.matrix(w.curr.del)
     w.curr<-as.matrix(w.curr)
     
     ##Generate g-bar, as in the paper.
-    gbar<-c(1/n*t(sample.weights*X)%*%(T2-probs.curr[,2]), 
-            1/n*t(sample.weights*X)%*%(T3-probs.curr[,3]),
-            1/n*t(sample.weights*X)%*%(T4-probs.curr[,4]),
+    gbar<-c(1/n*t(wtX)%*%(T2-probs.curr[,2]), 
+            1/n*t(wtX)%*%(T3-probs.curr[,3]),
+            1/n*t(wtX)%*%(T4-probs.curr[,4]),
             w.curr.del)
     
-    dgbar<-rbind(cbind(1/n*t(-sample.weights*X*probs.curr[,2]*(1-probs.curr[,2]))%*%X,
-                       1/n*t(sample.weights*X*probs.curr[,2]*probs.curr[,3])%*%X,
-                       1/n*t(sample.weights*X*probs.curr[,2]*probs.curr[,4])%*%X,
-                       1/n*t(sample.weights*X*(T1*probs.curr[,2]/probs.curr[,1] - T2*(1 - probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3] - T4*probs.curr[,2]/probs.curr[,4]))%*%X,
-                       1/n*t(sample.weights*X*(T1*probs.curr[,2]/probs.curr[,1] + T2*(1 - probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3] + T4*probs.curr[,2]/probs.curr[,4]))%*%X,
-                       1/n*t(sample.weights*X*(-T1*probs.curr[,2]/probs.curr[,1] - T2*(1 - probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3] + T4*probs.curr[,2]/probs.curr[,4]))%*%X
+    dgbar<-rbind(cbind(1/n*t(-wtX*probs.curr[,2]*(1-probs.curr[,2]))%*%X,
+                       1/n*t(wtX*probs.curr[,2]*probs.curr[,3])%*%X,
+                       1/n*t(wtX*probs.curr[,2]*probs.curr[,4])%*%X,
+                       1/n*t(wtX*(T1*probs.curr[,2]/probs.curr[,1] - T2*(1 - probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3] - T4*probs.curr[,2]/probs.curr[,4]))%*%X,
+                       1/n*t(wtX*(T1*probs.curr[,2]/probs.curr[,1] + T2*(1 - probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3] + T4*probs.curr[,2]/probs.curr[,4]))%*%X,
+                       1/n*t(wtX*(-T1*probs.curr[,2]/probs.curr[,1] - T2*(1 - probs.curr[,2])/probs.curr[,2] - T3*probs.curr[,2]/probs.curr[,3] + T4*probs.curr[,2]/probs.curr[,4]))%*%X
     ),
-    cbind(1/n*t(sample.weights*X*probs.curr[,2]*probs.curr[,3])%*%X,
-          1/n*t(-sample.weights*X*probs.curr[,3]*(1-probs.curr[,3]))%*%X,
-          1/n*t(sample.weights*X*probs.curr[,3]*probs.curr[,4])%*%X,
-          1/n*t(sample.weights*X*(T1*probs.curr[,3]/probs.curr[,1] + T2*probs.curr[,3]/probs.curr[,2] + T3*(1 - probs.curr[,3])/probs.curr[,3] - T4*probs.curr[,3]/probs.curr[,4]))%*%X,
-          1/n*t(sample.weights*X*(T1*probs.curr[,3]/probs.curr[,1] - T2*probs.curr[,3]/probs.curr[,2] + T3*(1 - probs.curr[,3])/probs.curr[,3] + T4*probs.curr[,3]/probs.curr[,4]))%*%X,
-          1/n*t(sample.weights*X*(-T1*probs.curr[,3]/probs.curr[,1] + T2*probs.curr[,3]/probs.curr[,2] + T3*(1 - probs.curr[,3])/probs.curr[,3] + T4*probs.curr[,3]/probs.curr[,4]))%*%X
+    cbind(1/n*t(wtX*probs.curr[,2]*probs.curr[,3])%*%X,
+          1/n*t(-wtX*probs.curr[,3]*(1-probs.curr[,3]))%*%X,
+          1/n*t(wtX*probs.curr[,3]*probs.curr[,4])%*%X,
+          1/n*t(wtX*(T1*probs.curr[,3]/probs.curr[,1] + T2*probs.curr[,3]/probs.curr[,2] + T3*(1 - probs.curr[,3])/probs.curr[,3] - T4*probs.curr[,3]/probs.curr[,4]))%*%X,
+          1/n*t(wtX*(T1*probs.curr[,3]/probs.curr[,1] - T2*probs.curr[,3]/probs.curr[,2] + T3*(1 - probs.curr[,3])/probs.curr[,3] + T4*probs.curr[,3]/probs.curr[,4]))%*%X,
+          1/n*t(wtX*(-T1*probs.curr[,3]/probs.curr[,1] + T2*probs.curr[,3]/probs.curr[,2] + T3*(1 - probs.curr[,3])/probs.curr[,3] + T4*probs.curr[,3]/probs.curr[,4]))%*%X
     ),
-    cbind(1/n*t(sample.weights*X*probs.curr[,2]*probs.curr[,4])%*%X,
-          1/n*t(sample.weights*X*probs.curr[,3]*probs.curr[,4])%*%X,
-          1/n*t(-sample.weights*X*probs.curr[,4]*(1-probs.curr[,4]))%*%X,
-          1/n*t(sample.weights*X*(T1*probs.curr[,4]/probs.curr[,1] + T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] + T4*(1 - probs.curr[,4])/probs.curr[,4]))%*%X,
-          1/n*t(sample.weights*X*(T1*probs.curr[,4]/probs.curr[,1] - T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] - T4*(1 - probs.curr[,4])/probs.curr[,4]))%*%X,
-          1/n*t(sample.weights*X*(-T1*probs.curr[,4]/probs.curr[,1] + T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] - T4*(1 - probs.curr[,4])/probs.curr[,4]))%*%X
+    cbind(1/n*t(wtX*probs.curr[,2]*probs.curr[,4])%*%X,
+          1/n*t(wtX*probs.curr[,3]*probs.curr[,4])%*%X,
+          1/n*t(-wtX*probs.curr[,4]*(1-probs.curr[,4]))%*%X,
+          1/n*t(wtX*(T1*probs.curr[,4]/probs.curr[,1] + T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] + T4*(1 - probs.curr[,4])/probs.curr[,4]))%*%X,
+          1/n*t(wtX*(T1*probs.curr[,4]/probs.curr[,1] - T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] - T4*(1 - probs.curr[,4])/probs.curr[,4]))%*%X,
+          1/n*t(wtX*(-T1*probs.curr[,4]/probs.curr[,1] + T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] - T4*(1 - probs.curr[,4])/probs.curr[,4]))%*%X
     ))
     
     out<-2*dgbar%*%invV%*%gbar
@@ -517,17 +528,18 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
                     t(X*(T1*probs.curr[,4]/probs.curr[,1] - T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] - T4*(1 - probs.curr[,4])/probs.curr[,4])),
                     t(X*(-T1*probs.curr[,4]/probs.curr[,1] + T2*probs.curr[,4]/probs.curr[,2] - T3*probs.curr[,4]/probs.curr[,3] - T4*(1 - probs.curr[,4])/probs.curr[,4])))/n
     
-    loss1<-diag(t(w.curr)%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr))
-    
-    out.1<-2*dw.beta1[,1:n]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,1]) +
-      2*dw.beta1[,(n+1):(2*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,2]) +
-      2*dw.beta1[,(2*n+1):(3*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,3])
-    out.2<-2*dw.beta2[,1:n]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,1]) +
-      2*dw.beta2[,(n+1):(2*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,2]) +
-      2*dw.beta2[,(2*n+1):(3*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,3])
-    out.3<-2*dw.beta3[,1:n]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,1]) +
-      2*dw.beta3[,(n+1):(2*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,2]) +
-      2*dw.beta3[,(2*n+1):(3*n)]%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr[,3])
+    Xprimew <- t(wtX)%*%w.curr
+    loss1<-diag(t(Xprimew)%*%XprimeX.inv%*%Xprimew)
+                
+    out.1<-2*dw.beta1[,1:n]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,1]) +
+      2*dw.beta1[,(n+1):(2*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,2]) +
+      2*dw.beta1[,(2*n+1):(3*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,3])
+    out.2<-2*dw.beta2[,1:n]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,1]) +
+      2*dw.beta2[,(n+1):(2*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,2]) +
+      2*dw.beta2[,(2*n+1):(3*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,3])
+    out.3<-2*dw.beta3[,1:n]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,1]) +
+      2*dw.beta3[,(n+1):(2*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,2]) +
+      2*dw.beta3[,(2*n+1):(3*n)]%*%(wtX)%*%XprimeX.inv%*%t(wtX)%*%(w.curr[,3])
     out<-c(out.1, out.2, out.3)
     out
   }
@@ -671,24 +683,24 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
 
   W<-gmm.func(beta.opt)$invV
   
-  X.G.1.1<-t(-X*sample.weights*probs.opt[,2]*(1-probs.opt[,2]))%*%X
-  X.G.1.2<-t(X*sample.weights*probs.opt[,2]*probs.opt[,3])%*%X
-  X.G.1.3<-t(X*sample.weights*probs.opt[,2]*probs.opt[,4])%*%X
-  X.G.1.4<-t(X*sample.weights*probs.opt[,2]*(T1/probs.opt[,1] - T2*(1-probs.opt[,2])/probs.opt[,2]^2 - T3/probs.opt[,3] - T4/probs.opt[,4]))%*%X
-  X.G.1.5<-t(X*sample.weights*probs.opt[,2]*(T1/probs.opt[,1] + T2*(1-probs.opt[,2])/probs.opt[,2]^2 - T3/probs.opt[,3] + T4/probs.opt[,4]))%*%X
-  X.G.1.6<-t(X*sample.weights*probs.opt[,2]*(-T1/probs.opt[,1] - T2*(1-probs.opt[,2])/probs.opt[,2]^2 - T3/probs.opt[,3] + T4/probs.opt[,4]))%*%X
-  X.G.2.1<-t(X*sample.weights*probs.opt[,2]*probs.opt[,3])%*%X
-  X.G.2.2<-t(-X*sample.weights*probs.opt[,3]*(1-probs.opt[,3]))%*%X
-  X.G.2.3<-t(X*sample.weights*probs.opt[,3]*probs.opt[,4])%*%X
-  X.G.2.4<-t(X*sample.weights*probs.opt[,3]*(T1/probs.opt[,1] + T2/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]^2 - T4/probs.opt[,4]))%*%X
-  X.G.2.5<-t(X*sample.weights*probs.opt[,3]*(T1/probs.opt[,1] - T2/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]^2 + T4/probs.opt[,4]))%*%X
-  X.G.2.6<-t(X*sample.weights*probs.opt[,3]*(-T1/probs.opt[,1] + T2/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]^2 + T4/probs.opt[,4]))%*%X
-  X.G.3.1<-t(X*sample.weights*probs.opt[,2]*probs.opt[,4])%*%X
-  X.G.3.2<-t(X*sample.weights*probs.opt[,3]*probs.opt[,4])%*%X
-  X.G.3.3<-t(-X*sample.weights*probs.opt[,4]*(1-probs.opt[,4]))%*%X
-  X.G.3.4<-t(X*sample.weights*probs.opt[,4]*(T1/probs.opt[,1] + T2/probs.opt[,2] - T3/probs.opt[,3] + T4*(1-probs.opt[,4])/probs.opt[,4]^2))%*%X
-  X.G.3.5<-t(X*sample.weights*probs.opt[,4]*(T1/probs.opt[,1] - T2/probs.opt[,2] - T3/probs.opt[,3] - T4*(1-probs.opt[,4])/probs.opt[,4]^2))%*%X
-  X.G.3.6<-t(X*sample.weights*probs.opt[,4]*(-T1/probs.opt[,1] + T2/probs.opt[,2] - T3/probs.opt[,3] - T4*(1-probs.opt[,4])/probs.opt[,4]^2))%*%X
+  X.G.1.1<-t(-wtX*probs.opt[,2]*(1-probs.opt[,2]))%*%X
+  X.G.1.2<-t(wtX*probs.opt[,2]*probs.opt[,3])%*%X
+  X.G.1.3<-t(wtX*probs.opt[,2]*probs.opt[,4])%*%X
+  X.G.1.4<-t(wtX*probs.opt[,2]*(T1/probs.opt[,1] - T2*(1-probs.opt[,2])/probs.opt[,2]^2 - T3/probs.opt[,3] - T4/probs.opt[,4]))%*%X
+  X.G.1.5<-t(wtX*probs.opt[,2]*(T1/probs.opt[,1] + T2*(1-probs.opt[,2])/probs.opt[,2]^2 - T3/probs.opt[,3] + T4/probs.opt[,4]))%*%X
+  X.G.1.6<-t(wtX*probs.opt[,2]*(-T1/probs.opt[,1] - T2*(1-probs.opt[,2])/probs.opt[,2]^2 - T3/probs.opt[,3] + T4/probs.opt[,4]))%*%X
+  X.G.2.1<-t(wtX*probs.opt[,2]*probs.opt[,3])%*%X
+  X.G.2.2<-t(-wtX*probs.opt[,3]*(1-probs.opt[,3]))%*%X
+  X.G.2.3<-t(wtX*probs.opt[,3]*probs.opt[,4])%*%X
+  X.G.2.4<-t(wtX*probs.opt[,3]*(T1/probs.opt[,1] + T2/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]^2 - T4/probs.opt[,4]))%*%X
+  X.G.2.5<-t(wtX*probs.opt[,3]*(T1/probs.opt[,1] - T2/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]^2 + T4/probs.opt[,4]))%*%X
+  X.G.2.6<-t(wtX*probs.opt[,3]*(-T1/probs.opt[,1] + T2/probs.opt[,2] + T3*(1-probs.opt[,3])/probs.opt[,3]^2 + T4/probs.opt[,4]))%*%X
+  X.G.3.1<-t(wtX*probs.opt[,2]*probs.opt[,4])%*%X
+  X.G.3.2<-t(wtX*probs.opt[,3]*probs.opt[,4])%*%X
+  X.G.3.3<-t(-wtX*probs.opt[,4]*(1-probs.opt[,4]))%*%X
+  X.G.3.4<-t(wtX*probs.opt[,4]*(T1/probs.opt[,1] + T2/probs.opt[,2] - T3/probs.opt[,3] + T4*(1-probs.opt[,4])/probs.opt[,4]^2))%*%X
+  X.G.3.5<-t(wtX*probs.opt[,4]*(T1/probs.opt[,1] - T2/probs.opt[,2] - T3/probs.opt[,3] - T4*(1-probs.opt[,4])/probs.opt[,4]^2))%*%X
+  X.G.3.6<-t(wtX*probs.opt[,4]*(-T1/probs.opt[,1] + T2/probs.opt[,2] - T3/probs.opt[,3] - T4*(1-probs.opt[,4])/probs.opt[,4]^2))%*%X
   XW.1<-X*(T2-probs.opt[,2])*sample.weights^.5
   XW.2<-X*(T3-probs.opt[,3])*sample.weights^.5
   XW.3<-X*(T4-probs.opt[,4])*sample.weights^.5
@@ -700,7 +712,9 @@ CBPS.4Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, st
                cbind(X.G.3.1,X.G.3.2,X.G.3.3,X.G.3.4,X.G.3.5,X.G.3.6))
   W1<-rbind(t(XW.1),t(XW.2),t(XW.3),t(XW.4),t(XW.5),t(XW.6))
   Omega<-1/n*(W1%*%t(W1))
-  vcov<-ginv(G%*%W%*%t(G))%*%G%*%W%*%Omega%*%W%*%t(G)%*%ginv(G%*%W%*%t(G))
+  
+  GWGinvGW <- ginv(G%*%W%*%t(G))%*%G%*%W
+  vcov <- GWGinvGW%*%Omega%*%t(GWGinvGW)
   
   colnames(probs.opt)<-treat.names
   
