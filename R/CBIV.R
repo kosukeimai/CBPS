@@ -364,7 +364,7 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   if (twosided){
     beta.n0 <- coef(glm(I(1-Tr) ~ - 1 + X, family = binomial(logit), subset = which(Z == 1)))
     beta.a0 <- coef(glm(Tr ~ -1 + X, family = binomial(logit), subset = which(Z == 0)))
-
+    
     p.hat.a0 <- pmin(pmax(exp(X%*%beta.a0)/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
     p.hat.n0 <- pmin(pmax(exp(X%*%beta.n0)/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
     p.hat.c0 <- pmin(pmax(1/(1 + exp(X%*%beta.a0) + exp(X%*%beta.n0)), probs.min), 1-probs.min)
@@ -379,11 +379,11 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   else{
     beta.init <- coef(glm(Tr ~ -1 + X, subset = which(Z == 1)))
   }
-
+  
   # All optimization functions need a one-sided or two-sided option
   mle.opt<-optim(beta.init, mle.loss, control=list("maxit"=iterations), method = "BFGS", gr = mle.gradient, twosided = twosided)
   beta.mle<-mle.opt$par
-
+  
   this.invV<-gmm.func(beta.mle, twosided = twosided)$invV
   
   if (score.only)   gmm.opt<-mle.opt
@@ -417,7 +417,7 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   beta.opt<-matrix(gmm.opt$par,nrow=k)
   J.opt<-gmm.loss(beta.opt, this.invV, twosided)
   bal.loss.opt <- bal.loss(beta.opt, invV = this.invV, twosided)
-
+  
   class(beta.opt)<-"coef"
   
   if (twosided){
@@ -468,12 +468,16 @@ CBIV <- function(Tr, Z, X, iterations=1000, method="over", twostep = TRUE, twosi
   output
 }
 
-vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde, delta, method = "tsls"){
+vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde = NULL, delta, method = "tsls"){
   if (!method %in% c("tsls", "wols", "ht")){
     stop("Invalid method argument.  Use tsls, wols, or ht.")
   }
   
   X <- object$x
+  
+  if (method == "ht"){
+    Ztilde = matrix(1, nrow = length(Y), ncol = 1)
+  }
   
   N <- length(Y)
   K <- ncol(X)
@@ -494,7 +498,7 @@ vcov_outcome.CBIV <- function(object, Y, Ttilde = NULL, Ztilde, delta, method = 
     if (length(Xtilde) > 0){
       Ztilde[,-c(Zind,Intind)] <- Xtilde*w
     }
-  }
+  }  
   
   pi.min<-10^-6
   
