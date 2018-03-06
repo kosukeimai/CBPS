@@ -118,7 +118,8 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
       w.curr<-1/n*(probs.curr-1+treat)^-1
     }
     ##Generate mean imbalance.
-    loss1<-abs(t(w.curr)%*%(sample.weights*X)%*%XprimeX.inv%*%t(sample.weights*X)%*%(w.curr))
+    Xprimew <- t(sample.weights*X)%*%(w.curr)
+    loss1<-abs(t(Xprimew)%*%XprimeX.inv%*%Xprimew)
     loss1
   }
   
@@ -185,8 +186,9 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
       dw<-1/n*t(-X*(treat-probs.curr)^2/(probs.curr*(1-probs.curr)))
     }
     ##Generate mean imbalance.
-    loss1<-t(w.curr*sample.weights)%*%X%*%XprimeX.inv%*%t(X)%*%(w.curr*sample.weights)
-    out<-sapply(2*dw%*%X%*%XprimeX.inv%*%t(X)%*%(sample.weights*w.curr), function (x) ifelse((x > 0 & loss1 > 0) | (x < 0 & loss1 < 0), abs(x), -abs(x))) 
+    Xprimew <- t(X)%*%(w.curr*sample.weights)
+    loss1<-t(Xprimew)%*%XprimeX.inv%*%Xprimew
+    out<-sapply(2*dw%*%X%*%XprimeX.inv%*%Xprimew, function (x) ifelse((x > 0 & loss1 > 0) | (x < 0 & loss1 < 0), abs(x), -abs(x))) 
     out
   }
   
@@ -314,7 +316,8 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
   }
   
   Omega<-(W1%*%t(W1)/n)
-  vcov<-ginv(G%*%W%*%t(G))%*%G%*%W%*%Omega%*%W%*%t(G)%*%ginv(G%*%W%*%t(G))
+  GWGinvGW <- ginv(G%*%W%*%t(G))%*%G%*%W 
+  vcov<- GWGinvGW%*%Omega%*%t(GWGinvGW)
   
   output<-list("coefficients"=matrix(beta.opt, ncol=1),"fitted.values"=probs.opt, "linear.predictor" = X%*%beta.opt,
                "deviance"=deviance,"weights"=w.opt,

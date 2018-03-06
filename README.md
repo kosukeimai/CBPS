@@ -20,3 +20,13 @@ including the generalization of experimental and instrumental variable
 estimates. Recently add the optimal CBPS which chooses the optimal
 balancing function and results in doubly robust and efficient
 estimator for the treatment effect.
+
+## Installation
+```
+## from CRAN
+install.packages("CBPS")
+
+## from github
+library(devtools)
+install_github("kosukeimai/CBPS", dependencies = TRUE)
+```
