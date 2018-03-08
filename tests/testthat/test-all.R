@@ -39,7 +39,6 @@ test_that("tests CBMS on the Lalonde data", {
   } else {
     expect_equal(x["age", "age"], 0.009398465, tolerance = accuracy)
     expect_equal(x["re74", "re75"], -0.03388868, tolerance = accuracy)
-    
   }
 })  
 
