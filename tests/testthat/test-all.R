@@ -3,7 +3,7 @@ library(CBPS)
 library(testthat)
 context("tests CBPS")
 
-accuracy <- 0.00001
+accuracy <- 0.0001
 if (grepl('SunOS',Sys.info()['sysname'], ignore.case = TRUE)) {
   accuracy <- 0.005
 }
@@ -29,13 +29,13 @@ test_that("tests CBMS on the Lalonde data", {
   fit <- CBPS(treat ~ age + educ + re75 + re74 + I(re75==0) + I(re74==0), data = LaLonde, ATT = TRUE)
   x <- vcov(fit)
 
-  expect_equal(fit$coefficients[2], -0.06388299, tolerance = accuracy)
-  expect_equal(fit$coefficients["educ",1], -0.08669678, tolerance = accuracy)
+  expect_equal(fit$coefficients[2], -0.06388547, tolerance = accuracy)
+  expect_equal(fit$coefficients["educ",1], -0.08668682, tolerance = accuracy)
   expect_that(dim(x), is_equivalent_to(c(7,7)))
   
   if (R.Version()$arch != 'i386') {
-    expect_equal(x["age", "age"], 0.01208261, tolerance = accuracy)
-    expect_equal(x["re74", "re75"], -0.0311205, tolerance = accuracy)
+    expect_equal(x["age", "age"], 0.01207999, tolerance = accuracy)
+    expect_equal(x["re74", "re75"], -0.03111142, tolerance = accuracy)
   } else {
     expect_equal(x["age", "age"], 0.009398473, tolerance = accuracy)
     expect_equal(x["re74", "re75"], -0.03388872, tolerance = accuracy)
