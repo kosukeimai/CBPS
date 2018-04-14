@@ -187,7 +187,7 @@
 #' @export CBPS
 #' 
 CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=TRUE, method="over", twostep=TRUE,
-                 sample.weights=NULL, baseline.formula=NULL, diff.formula=NULL,...) {
+                 sample.weights=NULL, baseline.formula=NULL, diff.formula=NULL, ...) {
   if (missing(data)) 
     data <- environment(formula)
   call <- match.call()

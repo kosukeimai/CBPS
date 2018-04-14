@@ -254,7 +254,7 @@ X.mat<-X.mat[,apply(X.mat,2,sd)>0, drop = FALSE]
 
 ##Format design matrix, run glm
 glm1<-glm(treat~X.mat,family="binomial")
-
+ glm1$coefficients<-CBPS(treat~X.mat, ATT=0,method="exact")$coefficients
 
 ##################
 ##Make SVD matrix of covariates
@@ -268,6 +268,9 @@ X.svd<-scale(X.svd) # Edit by Christian; this was causing an error
 X.svd<-svd(X.svd)$u%*%diag(svd(X.svd)$d>0.0001)
 X.svd<-X.svd[,apply(X.svd,2,sd)>0,drop=FALSE]
 glm1<-glm(treat~X.svd,family="binomial")
+glm.cb<-glm1
+glm.cb<-CBPS(treat~X.svd, ATT=0,method="exact")$coefficients
+
 if(time.vary==TRUE){
 #} else{
 X.svd<-NULL
@@ -281,13 +284,19 @@ for(i in sort(unique(time))){
 	X.svd<-rbind(X.svd,X.sub)
 	}
 ##Make matrix of time-varying glm starting vals
-glm.coefs<-NULL
+cbps.coefs<-glm.coefs<-NULL
 n.time<-length(unique(time))
 for(i in 1:n.time){
-	glm.coefs<-cbind(glm.coefs, summary(glm(treat~X.svd, subset=(time==i)))$coef[,1])
+	glm1<-summary(glm(treat~X.svd, subset=(time==i)))$coefficients[,1]
+	glm.cb<-glm1
+	glm.cb<-CBPS(treat[time==i]~X.svd[time==i,], ATT=0,method="exact")$coefficients
+	glm.coefs<-cbind(glm.coefs,glm1)
+	cbps.coefs<-cbind(cbps.coefs,glm.cb)
 	}
 	glm.coefs[is.na(glm.coefs)]<-0
-	glm1$coefficients<-as.vector(glm.coefs)
+	cbps.coefs[is.na(cbps.coefs)]<-0
+	glm1<-as.vector(glm.coefs)
+	glm.cb<-as.vector(cbps.coefs)
 }
 
 ##################
@@ -295,24 +304,69 @@ for(i in 1:n.time){
 ##################
 #Twostep  is true
 msm.loss1<-function(x,...) msm.loss.func(betas=x, X=cbind(1,X.svd), treat=treat, time=time,...)$loss
-glm.fit<-msm.loss.func(glm1$coef,X=cbind(1,X.svd),time=time,treat=treat,full.var=full.var,twostep=FALSE)
-#print(head(glm.fit$V))[,1:10]
-##Twostep is true; full variance option is passed
+glm.fit<-msm.loss.func(glm1,X=cbind(1,X.svd),time=time,treat=treat,full.var=full.var,twostep=FALSE)
+cb.fit<-msm.loss.func(glm.cb,X=cbind(1,X.svd),time=time,treat=treat,full.var=full.var,twostep=FALSE)
 
-if(twostep==TRUE){
- Vcov.inv<-glm.fit
-  
- msm.opt<-optim(glm1$coef,msm.loss1,full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE,method="BFGS")
- 
- msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE)
+type.fit<-"Returning Estimates from Logistic Regression\n"
+if(cb.fit$loss<glm.fit$loss) {
+	
+	glm1<-glm.cb
+	glm.fit<-cb.fit
+type.fit<-"Returning Estimates from CBPS\n"
+
 }
+##Twostep is true; full variance option is passed
+#Run twostep regardless for starting vals
+#if(twostep==TRUE){
+ Vcov.inv<-glm.fit
+ msm.opt<-optim(glm1,msm.loss1,full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE,method="BFGS")
+msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE)
+
+ l3<-msm.loss.func(glm1,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE)
+
+	if(l3$loss<msm.fit$loss) {
+		msm.fit<-l3
+		warning("Warning: Optimization did not improve over initial estimates\n")
+		cat(type.fit)
+		}
+#}
 
 ##Twostep is false; full variance option is passed
 
-if(twostep==FALSE) {
-	msm.opt<-optim(glm1$coef,msm.loss1,full.var=full.var,bal.only=TRUE,twostep=FALSE,method="BFGS")
+#if(twostep==FALSE) {
 
-	msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=FALSE)
+#msm.opt<-optim(glm1,msm.loss1,full.var=full.var,bal.only=TRUE,twostep=FALSE,method="BFGS")
+#msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=FALSE)
+
+#}
+
+if(twostep==FALSE) {
+
+#null.fit<-msm.loss.func(glm1*0,X=cbind(1,X.svd),time=time,treat=treat,full.var=full.var,twostep=FALSE)
+
+ #Vcov.inv<-glm.fit
+
+  #msm.opt1<-optim(glm1,msm.loss1,full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE,method="BFGS",constant.var=TRUE,control=list("maxit"=10))
+	#msm.opt<-optim(glm1,msm.loss1,full.var=full.var,Vcov.inv=diag(ncol(msm.opt1$V)),bal.only=TRUE,twostep=FALSE,method="BFGS")
+	#msm.opt<-optim(msm.opt$par,msm.loss1,full.var=full.var,Vcov.inv=diag(ncol(msm.opt1$V)),bal.only=TRUE,twostep=FALSE,method="BFGS")
+#print(glm1)
+msm.opt<-optim(msm.fit$par,msm.loss1,full.var=full.var,bal.only=TRUE,twostep=FALSE,method="BFGS")
+msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=FALSE)
+
+
+
+	
+ l3<-msm.loss.func(glm1,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,
+ Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=FALSE)
+
+	if(l3$loss<msm.fit$loss) {
+		msm.fit<-l3
+		cat("\nWarning: Optimization did not improve over initial estimates\n")
+		cat(type.fit)
+
+		}
+
+
 	}
 	
 ##################
@@ -372,7 +426,8 @@ return(out)
 		
 
 
-msm.loss.func<-function(betas,X=X,treat=treat,time=time,bal.only=F,time.sub=0,twostep=FALSE, Vcov.inv=NULL,full.var=FALSE){
+msm.loss.func<-function(betas,X=X,treat=treat,time=time,bal.only=F,time.sub=0,twostep=FALSE, Vcov.inv=NULL,full.var=FALSE,
+constant.var=FALSE){
 
 	if((length(betas)==dim(X)[2]) ) betas<-rep(betas, dim(X)[2]/length(betas))
 
@@ -466,6 +521,7 @@ msm.loss.func<-function(betas,X=X,treat=treat,time=time,bal.only=F,time.sub=0,tw
 
 	if(twostep==TRUE){
 		var.X.inv<-Vcov.inv
+		if(constant.var==TRUE) var.X.inv<-Vcov.inv*0
 	} else{
 		if(full.var==FALSE){
 			var.X.inv<-ginv((X.all)%*%t(X.all))}else{
