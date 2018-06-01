@@ -249,7 +249,7 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
 #' returns the result in the paper
 #' @param ... Other parameters to be passed through to \code{optim()}
 #'
-CBMSM.fit<-function(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary,init, ...){
+CBMSM.fit<-function(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary, init, ...){
 id0<-id
 id<-as.numeric(as.factor(id0))
 
