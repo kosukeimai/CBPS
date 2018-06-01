@@ -52,7 +52,7 @@ test_that("tests CBMS on the Blackwell data", {
   # Quickly fit a short model to test
   form0 <- "d.gone.neg ~ d.gone.neg.l1 + camp.length"
   x<-CBMSM(formula = form0, time=Blackwell$time,id=Blackwell$demName, data=Blackwell, type="MSM",  
-           iterations = NULL, twostep = TRUE, msm.variance = "approx", time.vary = FALSE)
+           iterations = NULL, twostep = TRUE, msm.variance = "approx", time.vary = FALSE, init ="glm")
  
   expect_that(length(x), is_equivalent_to(15))
   expect_true("glm.weights" %in% names(x))
@@ -68,11 +68,11 @@ test_that("tests CBMS on the Blackwell data", {
  		
     fit1<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
   	  		data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-  		  	msm.variance = "full", time.vary = TRUE)
+  		  	msm.variance = "full", time.vary = TRUE, init="glm")
   
     fit2<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
   	  		data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-  		  	msm.variance = "approx", time.vary = TRUE)
+  		  	msm.variance = "approx", time.vary = TRUE, init="glm")
 
     #Assessing balance
     bal1<-balance.CBMSM(fit1)
@@ -105,7 +105,7 @@ test_that("tests CBMS on the Blackwell data", {
     y<-cbind(treat.1,treat.2,treat.3) %*% c(2,2,2) + 
     X1 %*% c(-2,8,7,6,2) + rnorm(n,sd=5)
   
-    multibin1<-CBMSM(treat~X,id=id,time=time,type="MultiBin",twostep=TRUE)
+    multibin1<-CBMSM(treat~X,id=id,time=time,type="MultiBin",twostep=TRUE, init="glm")
     x <- summary(lm(y~-1+treat.1+treat.2+treat.3+X1, weights=multibin1$w))
   }
 })  
