@@ -87,14 +87,15 @@ library(MASS)
 #' form1<-"d.gone.neg ~ d.gone.neg.l1 + d.gone.neg.l2 + d.neg.frac.l3 + 
 #' 		camp.length + camp.length + deminc + base.poll + year.2002 + 
 #' 		year.2004 + year.2006 + base.und + office"
-#' 		
+#'
+#' ##Note that 	init="glm" gives the published results but the default is now init="opt"
 #' fit1<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 #' 			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-#' 			msm.variance = "full", time.vary = TRUE)
+#' 			msm.variance = "full", time.vary = TRUE, init="glm")
 #' 
 #' fit2<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 #' 			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-#' 			msm.variance = "approx", time.vary = TRUE)
+#' 			msm.variance = "approx", time.vary = TRUE, init="glm")
 #' 
 #' 
 #' ##Assessing balance
