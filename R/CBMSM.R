@@ -244,7 +244,8 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
 #' @param time.vary Default is \code{FALSE}, which uses the same coefficients
 #' across time period.  Set to \code{TRUE} to fit one set per time period.
 #' @param init Default is \code{"opt"}, which uses CBPS and logistic regression
-#' starting values, and chooses the one that achieves the best balance.
+#' starting values, and chooses the one that achieves the best balance.  \code{"glm"} returns
+#' returns the result in the paper
 #' @param ... Other parameters to be passed through to \code{optim()}
 #'
 CBMSM.fit<-function(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary,init, ...){
