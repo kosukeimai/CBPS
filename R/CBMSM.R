@@ -37,6 +37,9 @@ library(MASS)
 #' @param type "MSM" for a marginal structural model, with multiple time
 #' periods or "MultiBin" for multiple binary treatments at the same time
 #' period.
+#' @param init Default is \code{"opt"}, which uses CBPS and logistic regression
+#' starting values, and chooses the one that achieves the best balance.  Other options 
+#' are "glm" and "cbps"
 #' @param ... Other parameters to be passed through to \code{optim()}
 #' @return \item{weights}{The optimal weights.} \item{fitted.values}{The fitted
 #' propensity score for each observation.} \item{y}{The treatment vector used.}
@@ -143,7 +146,7 @@ library(MASS)
 #' 
 #' @export CBMSM
 #' 
-CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.variance = "approx", time.vary = FALSE, ...){
+CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.variance = "approx", time.vary = FALSE, init="opt",...){
   if (missing(data)) 
     data <- environment(formula)
   call <- match.call()
@@ -196,7 +199,7 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
 
   fit <- eval(call("CBMSM.fit", treat = Y, X = X, id = id, time=time, 
                    MultiBin.fit = MultiBin.fit, twostep = twostep, msm.variance = msm.variance,
-                   time.vary = time.vary))    
+                   time.vary = time.vary, init = init))    
   
   fit$call<-call
   fit$formula<-formula
@@ -240,9 +243,11 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
 #' \code{TRUE} to use the full variance matrix.
 #' @param time.vary Default is \code{FALSE}, which uses the same coefficients
 #' across time period.  Set to \code{TRUE} to fit one set per time period.
+#' @param init Default is \code{"opt"}, which uses CBPS and logistic regression
+#' starting values, and chooses the one that achieves the best balance.
 #' @param ... Other parameters to be passed through to \code{optim()}
 #'
-CBMSM.fit<-function(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary, ...){
+CBMSM.fit<-function(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary,init, ...){
 id0<-id
 id<-as.numeric(as.factor(id0))
 
@@ -270,6 +275,7 @@ X.svd<-X.svd[,apply(X.svd,2,sd)>0,drop=FALSE]
 glm1<-glm(treat~X.svd,family="binomial")
 glm.cb<-glm1
 glm.cb<-CBPS(treat~X.svd, ATT=0,method="exact")$coefficients
+glm1<-glm1$coefficients
 
 if(time.vary==TRUE){
 #} else{
@@ -308,65 +314,43 @@ glm.fit<-msm.loss.func(glm1,X=cbind(1,X.svd),time=time,treat=treat,full.var=full
 cb.fit<-msm.loss.func(glm.cb,X=cbind(1,X.svd),time=time,treat=treat,full.var=full.var,twostep=FALSE)
 
 type.fit<-"Returning Estimates from Logistic Regression\n"
-if(cb.fit$loss<glm.fit$loss) {
-	
+if((cb.fit$loss<glm.fit$loss & init=="opt")|init=="CBPS") {
 	glm1<-glm.cb
 	glm.fit<-cb.fit
 type.fit<-"Returning Estimates from CBPS\n"
 
 }
+
 ##Twostep is true; full variance option is passed
 #Run twostep regardless for starting vals
 #if(twostep==TRUE){
  Vcov.inv<-glm.fit
  msm.opt<-optim(glm1,msm.loss1,full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE,method="BFGS")
-msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE)
+ msm.twostep<-msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE)
 
  l3<-msm.loss.func(glm1,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE)
 
-	if(l3$loss<msm.fit$loss) {
+	if((l3$loss<msm.fit$loss) & init=="opt") {
 		msm.fit<-l3
 		warning("Warning: Optimization did not improve over initial estimates\n")
 		cat(type.fit)
 		}
-#}
 
-##Twostep is false; full variance option is passed
-
-#if(twostep==FALSE) {
-
-#msm.opt<-optim(glm1,msm.loss1,full.var=full.var,bal.only=TRUE,twostep=FALSE,method="BFGS")
-#msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=FALSE)
-
-#}
 
 if(twostep==FALSE) {
 
-#null.fit<-msm.loss.func(glm1*0,X=cbind(1,X.svd),time=time,treat=treat,full.var=full.var,twostep=FALSE)
-
- #Vcov.inv<-glm.fit
-
-  #msm.opt1<-optim(glm1,msm.loss1,full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=TRUE,method="BFGS",constant.var=TRUE,control=list("maxit"=10))
-	#msm.opt<-optim(glm1,msm.loss1,full.var=full.var,Vcov.inv=diag(ncol(msm.opt1$V)),bal.only=TRUE,twostep=FALSE,method="BFGS")
-	#msm.opt<-optim(msm.opt$par,msm.loss1,full.var=full.var,Vcov.inv=diag(ncol(msm.opt1$V)),bal.only=TRUE,twostep=FALSE,method="BFGS")
-#print(glm1)
-msm.opt<-optim(msm.fit$par,msm.loss1,full.var=full.var,bal.only=TRUE,twostep=FALSE,method="BFGS")
+if(init=="opt") msm.opt<-optim(msm.fit$par,msm.loss1,full.var=full.var,bal.only=TRUE,twostep=FALSE,method="BFGS")
+if(init!="opt") msm.opt<-optim(msm.opt$par,msm.loss1,full.var=full.var,bal.only=TRUE,twostep=FALSE,method="BFGS")
 msm.fit<-msm.loss.func(msm.opt$par,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=FALSE)
 
-
-
-	
  l3<-msm.loss.func(glm1,X=cbind(1,X.svd), treat=treat, time=time, full.var=full.var,
  Vcov.inv=Vcov.inv$V,bal.only=TRUE,twostep=FALSE)
-
-	if(l3$loss<msm.fit$loss) {
+ 
+	if((l3$loss<msm.fit$loss) & init=="opt") {
 		msm.fit<-l3
 		cat("\nWarning: Optimization did not improve over initial estimates\n")
 		cat(type.fit)
-
 		}
-
-
 	}
 	
 ##################
