@@ -4,7 +4,7 @@
 \alias{CBMSM.fit}
 \title{CBMSM.fit}
 \usage{
-CBMSM.fit(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary,
+CBMSM.fit(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary, init, 
   ...)
 }
 \arguments{
@@ -37,6 +37,10 @@ approximation of the variance described in Imai and Ratkovic (2014).  Set to
 
 \item{time.vary}{Default is \code{FALSE}, which uses the same coefficients
 across time period.  Set to \code{TRUE} to fit one set per time period.}
+
+\item{init}{ Default is \code{"opt"}, which uses CBPS and logistic regression
+starting values, and chooses the one that achieves the best balance.  \code{"glm"} returns
+returns the result in the original paper}
 
 \item{...}{Other parameters to be passed through to \code{optim()}}
 }
