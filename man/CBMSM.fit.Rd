@@ -4,8 +4,8 @@
 \alias{CBMSM.fit}
 \title{CBMSM.fit}
 \usage{
-CBMSM.fit(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary, init, 
-  ...)
+CBMSM.fit(treat, X, id, time, MultiBin.fit, twostep, msm.variance, time.vary,
+  init, ...)
 }
 \arguments{
 \item{treat}{A vector of treatment assignments.  For N observations over T
