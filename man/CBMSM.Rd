@@ -5,7 +5,7 @@
 \title{Covariate Balancing Propensity Score (CBPS) for Marginal Structural Models}
 \usage{
 CBMSM(formula, id, time, data, type = "MSM", twostep = TRUE,
-  msm.variance = "approx", time.vary = FALSE, init = "opt", ...)
+  msm.variance = "approx", time.vary = FALSE, init="opt",...)
 }
 \arguments{
 \item{formula}{A list of formulas of the form treat ~ X.  The function
@@ -42,6 +42,8 @@ across time period.  Set to \code{TRUE} to fit one set per time period.}
 \item{init}{Default is \code{"opt"}, which uses CBPS and logistic regression
 starting values, and chooses the one that achieves the best balance.  Other options 
 are "glm" and "CBPS"}
+
+
 
 \item{...}{Other parameters to be passed through to \code{optim()}}
 }
@@ -89,15 +91,14 @@ fit0<-CBMSM(formula = form0, time=Blackwell$time,id=Blackwell$demName,
 form1<-"d.gone.neg ~ d.gone.neg.l1 + d.gone.neg.l2 + d.neg.frac.l3 + 
 		camp.length + camp.length + deminc + base.poll + year.2002 + 
 		year.2004 + year.2006 + base.und + office"
-
-##Note that 	init="glm" gives the published results but the default is now init="opt"
+		
 fit1<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-			msm.variance = "full", time.vary = TRUE, init="glm")
+			msm.variance = "full", time.vary = TRUE)
 
 fit2<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-			msm.variance = "approx", time.vary = TRUE, init="glm")
+			msm.variance = "approx", time.vary = TRUE)
 
 
 ##Assessing balance
