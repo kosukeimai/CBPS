@@ -10,7 +10,6 @@ Authors@R: c(
   person("Xiaolin", "Yang", , "xiaoliny@princeton.edu", c("ctb")),
   person("Sida", "Peng", , "sp947@cornell.edu", c("ctb"))
   )
-Maintainer: Hubert Jin <hubertj@princeton.edu>
 Depends:
     R (>= 3.4),
     MASS,
