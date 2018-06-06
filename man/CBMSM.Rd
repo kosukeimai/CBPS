@@ -94,12 +94,11 @@ form1<-"d.gone.neg ~ d.gone.neg.l1 + d.gone.neg.l2 + d.neg.frac.l3 +
 		
 fit1<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-			msm.variance = "full", time.vary = TRUE)
+			msm.variance = "full", time.vary = TRUE, init="glm")
 
 fit2<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, 
-			msm.variance = "approx", time.vary = TRUE)
-
+			msm.variance = "approx", time.vary = TRUE, init="glm")
 
 ##Assessing balance
 
