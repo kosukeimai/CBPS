@@ -1,5 +1,5 @@
 Package: CBPS
-Version: 0.18
+Version: 0.19
 Date: 2018-03-09
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
