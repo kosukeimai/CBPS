@@ -41,4 +41,3 @@ License: GPL (>= 2)
 NeedsCompilation: no
 Repository: CRAN
 RoxygenNote: 6.0.1
-Suggests: testthat
