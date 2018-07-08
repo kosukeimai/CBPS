@@ -16,8 +16,8 @@ treatments from [Fong, Hazlett, and Imai (2018)](https://doi.org/10.1214/17-AOAS
 and the situation with multiple distinct binary treatments administered 
 simultaneously. In the future it will be extended to other settings including 
 the generalization of experimental and instrumental variable estimates. Recently 
-add the optimal CBPS which chooses the optimal balancing function and results 
-in doubly robust and efficient estimator for the treatment effect.
+we have added the optimal CBPS which chooses the optimal balancing function and 
+results in doubly robust and efficient estimator for the treatment effect.
 
 ## Installation
 ```
