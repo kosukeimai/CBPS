@@ -91,8 +91,8 @@ hdCBPS.fit <- function(x,y,treat, Att, iterations=1000, methd="linear") {
   
   covb  = cv.glmnet(x,treat,family="binomial")
   
-  S1 = which(coef(cov1)!=0)
-  S0 = which(coef(cov0)!=0)
+  S1 = which(as.logical(coef(cov1)!=0))
+  S0 = which(as.logical(coef(cov0)!=0))
   
   
   ##Generates ATE weights.	Called by loss function, etc.
