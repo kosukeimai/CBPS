@@ -12,13 +12,12 @@ version implements the CBPS for longitudinal settings so that it can
 be used in conjunction with marginal structural models from [Imai and
 Ratkovic (2015)](https://doi.org/10.1080/01621459.2014.956872), treatments 
 with three- and four-valued treatment variables, continuous-valued
-treatments from [Fong, Hazlett, and Imai (2018)]
-(https://doi.org/10.1214/17-AOAS1101), and the situation with multiple 
-distinct binary treatments administered simultaneously. In the future it 
-will be extended to other settings including the generalization of 
-experimental and instrumental variable estimates. Recently add the optimal 
-CBPS which chooses the optimal balancing function and results in doubly 
-robust and efficient estimator for the treatment effect.
+treatments from [Fong, Hazlett, and Imai (2018)](https://doi.org/10.1214/17-AOAS1101), 
+and the situation with multiple distinct binary treatments administered 
+simultaneously. In the future it will be extended to other settings including 
+the generalization of experimental and instrumental variable estimates. Recently 
+add the optimal CBPS which chooses the optimal balancing function and results 
+in doubly robust and efficient estimator for the treatment effect.
 
 ## Installation
 ```
