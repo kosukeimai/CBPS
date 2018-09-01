@@ -1,0 +1,26 @@
+library(CBPS)
+CBMSM.fit
+CBMSM
+CBMSM.fit
+library(CBPS)#
+data(Blackwell)#
+form0 <- "d.gone.neg ~ d.gone.neg.l1 + camp.length"#
+#
+source('~/Dropbox/Github/CBPS/R/CBMSM.R')#
+fit0<-CBMSM(formula = form0, time=Blackwell$time,id=Blackwell$demName,#
+			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, #
+			msm.variance = "approx", time.vary = FALSE)#
+#
+time=Blackwell$time;id=Blackwell$demName;#
+			data=Blackwell; type="MSM";  iterations = NULL; twostep = TRUE; #
+ 			msm.variance = "approx"; time.vary = FALSE;init="opt"#
+ 			treat<-Blackwell$d.gone.neg#
+ 			X<-cbind(Blackwell$d.gone.neg.l1 , Blackwell$camp.length)#
+#
+fit0<-CBMSM(formula = form0, time=Blackwell$time,id=Blackwell$demName,#
+			data=Blackwell, type="MSM",  iterations = NULL, twostep = TRUE, #
+			msm.variance = "approx", time.vary = FALSE, init="glm")#
+#
+lm1<-lm(demprcnt[time==1]~fit0$treat.hist,data=Blackwell,#
+weights=fit0$weights)#
+lm1
