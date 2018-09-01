@@ -16,8 +16,8 @@ library(MASS)
 #' ### @aliases CBMSM CBMSM.fit
 #' @param formula A formula of the form treat ~ X.  The same covariates are used
 #' in each time period.  At default values, a single set of coefficients is estimated
-#' across all time periods.  To allow a different set of 
-#'  to each time period, set \code{time.vary = TRUE}. 
+#' across all time periods.  To allow a different set of coefficients for each 
+#' time period, set \code{time.vary = TRUE}. 
 #' @param id A vector which identifies the unit associated with each row of
 #' treat and X.
 #' @param time A vector which identifies the time period associated with each
