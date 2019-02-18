@@ -176,7 +176,8 @@ CBPS.Continuous<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations
   probs.mle<-pmax(log(probs.min),probs.mle)
   
   params.curr<-c(mcoef, log(sigmasq))
-  mle.J<-gmm.loss(params.curr)
+  mle.J <- NA
+  try(mle.J<-gmm.loss(params.curr))
   mle.bal<-bal.loss(params.curr)
  
   try({glm.invV<-gmm.func(params.curr)$invV
