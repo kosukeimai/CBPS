@@ -5,7 +5,7 @@ Title: Covariate Balancing Propensity Score
 Authors@R: c(
   person("Christian", "Fong", , "christianfong@stanford.edu", c("aut", "cre")),
   person("Marc", "Ratkovic", , "ratkovic@princeton.edu", c("aut")),
-  person("Kosuke", "Imai", , "kimai@Princeton.edu", c("aut")),
+  person("Kosuke", "Imai", , "imai@Harvard.Edu", c("aut")),
   person("Chad", "Hazlett", , "chazlett@ucla.edu", c("ctb")),
   person("Xiaolin", "Yang", , "xiaoliny@princeton.edu", c("ctb")),
   person("Sida", "Peng", , "sp947@cornell.edu", c("ctb"))
@@ -28,7 +28,7 @@ Description: Implements the covariate balancing propensity score (CBPS) proposed
     be used in conjunction with marginal structural models from Imai and Ratkovic
     (2015) <DOI:10.1080/01621459.2014.956872>, treatments with three- and four-
     valued treatment variables, continuous-valued treatments from Fong, Hazlett,
-    and Imai (2015) <DOI:10.1214/17-AOAS1101>, and the
+    and Imai (2018) <DOI:10.1214/17-AOAS1101>, and the
     situation with multiple distinct binary treatments administered simultaneously.
     In the future it will be extended to other settings including the generalization
     of experimental and instrumental variable estimates. Recently we have added the 
