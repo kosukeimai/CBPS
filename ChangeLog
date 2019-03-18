@@ -6,7 +6,7 @@ version date      description
 0.5 	05/07/13  Adds function that handles three- and four-valued treatments.
 0.6 	06/05/13  Adds multiple binary treatment case, as well as extending plot and summary capabilities.
 0.7     07/24/13  MAJOR BUG FIX.  In versions 5 and 6, CBPS for the cross-sectional case interprets 1 as untreated and 0 as treated.  This has been fixed.
-0.9		08/07/14  Adds CBPSContinuous.  Major changes to interface for and backend of CBMSM.
+0.9	08/07/14  Adds CBPSContinuous.  Major changes to interface for and backend of CBMSM.
 0.10	09/07/15  Adds nonparametric estimation.  Simplifies CBPS output.  Numeric treatments now interpreted as continuous, and factors are interpreted as multi-valued.  Improves interface for ATT.
 0.11	04/29/16  Adds Improved CBPS from Han et al through the baseline and diff arguments.
 0.12	11/01/16  Fixes bug that affected the weight for the first observation in the continuous case.  Fixed bug that caused npCBPS to ignore choice of corprior.  Added SVD to CBPS Optimal.
@@ -17,4 +17,4 @@ version date      description
 0.17	01/29/18  Reuploaded to CRAN.
 0.18	03/09/18  Improved numerical precision and improved compatibility with systems that where long data types are disabled.  
 0.19	06/14/18  Updated CBMSM so it has three start options: CBPS, glm, and optimal, the default.  Optimal tries CBPS and glm and implements the one with the smallest criterion value.  If criterion is smaller at standard stabilized weights, those are returned.
-0.20  03/18/19  Major update on hdCBPS
+0.20    03/18/19  Major update on hdCBPS

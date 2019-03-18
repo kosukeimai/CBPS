@@ -1,6 +1,6 @@
 Package: CBPS
-Version: 0.19
-Date: 2018-06-14
+Version: 0.20
+Date: 2019-03-18
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
   person("Christian", "Fong", , "christianfong@stanford.edu", c("aut", "cre")),
@@ -22,19 +22,18 @@ Description: Implements the covariate balancing propensity score (CBPS) proposed
     by Imai and Ratkovic (2014) <DOI:10.1111/rssb.12027>. The propensity score is
     estimated such that it maximizes the resulting covariate balance as well as the
     prediction of treatment assignment. The method, therefore, avoids an iteration
-    between model fitting and balance checking. The package also implements several
-    extensions of the CBPS beyond the cross-sectional, binary treatment setting.
-    The current version implements the CBPS for longitudinal settings so that it can
-    be used in conjunction with marginal structural models from Imai and Ratkovic
-    (2015) <DOI:10.1080/01621459.2014.956872>, treatments with three- and four-
-    valued treatment variables, continuous-valued treatments from Fong, Hazlett,
-    and Imai (2018) <DOI:10.1214/17-AOAS1101>, and the
-    situation with multiple distinct binary treatments administered simultaneously.
-    In the future it will be extended to other settings including the generalization
-    of experimental and instrumental variable estimates. Recently we have added the 
-    optimal CBPS which chooses the optimal balancing function and results in doubly 
-    robust and efficient estimator for the treatment effect as well as high dimensional
-    CBPS when a large number of covariates exist. 
+    between model fitting and balance checking.  The package also implements optimal
+    CBPS from Fan et al. (2016) <https://imai.fas.harvard.edu/research/CBPStheory.html>,  
+    several extensions of the CBPS beyond the cross-sectional, binary treatment setting.
+    They include the CBPS for longitudinal settings so that it can be used in 
+    conjunction with marginal structural models from Imai and Ratkovic (2015) 
+    <DOI:10.1080/01621459.2014.956872>, treatments with three- and four-valued treatment 
+    variables, continuous-valued treatments from Fong, Hazlett, and Imai (2018) 
+    <DOI:10.1214/17-AOAS1101>, propensity score estimation with a large number of 
+    covariates from Ning, Peng, and Imai (2018) <arXiv:1812.08683>, and the situation 
+    with multiple distinct binary treatments administered simultaneously. In the future 
+    it will be extended to other settings including the generalization of experimental 
+    and instrumental variable estimates. 
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
