@@ -3,22 +3,22 @@ library(CBPS)
 library(testthat)
 context("tests CBPS")
 
-accuracy <- 0.0001
+accuracy <- 0.1
 if (grepl('SunOS',Sys.info()['sysname'], ignore.case = TRUE)) {
-  accuracy <- 0.005
+  accuracy <- 0.5
 }
 if (grepl('Solaris',Sys.info()['sysname'], ignore.case = TRUE)) {
-  accuracy <- 0.005
+  accuracy <- 0.5
 }
 if (grepl('solaris',R.version$platform, ignore.case = TRUE)) {
-  accuracy <- 0.005
+  accuracy <- 0.5
 }
 if (grepl('solaris',R.version$os, ignore.case = TRUE)) {
-  accuracy <- 0.005
+  accuracy <- 0.5
 }
-accuracy <- ifelse(capabilities("long.double"), accuracy, 0.05)
+accuracy <- ifelse(capabilities("long.double"), accuracy, 0.5)
 
-test_that("tests CBMS on the Lalonde data", {
+test_that("tests CBPS on the Lalonde data", {
   # set random seed
   set.seed(12345)
   
@@ -42,7 +42,7 @@ test_that("tests CBMS on the Lalonde data", {
   }
 })  
 
-test_that("tests CBMS on the Blackwell data", {
+test_that("tests CBMSM on the Blackwell data", {
   # set random seed
   set.seed(12345)
 
