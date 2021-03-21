@@ -100,7 +100,7 @@
 #' \url{http://imai.princeton.edu/research/CBPS.html} \cr Fong, Christian, Chad
 #' Hazlett, and Kosuke Imai.  2018.  ``Covariate Balancing Propensity Score
 #' for a Continuous Treatment.'' The Annals of Applied Statistics.
-#' Manuscript. \url{http://imai.princeton.edu/research/files/CBGPS.pdf} \cr
+#' \url{http://imai.princeton.edu/research/files/CBGPS.pdf} \cr
 #' Fan, Jianqing and Imai, Kosuke and Liu, Han and Ning, Yang and Yang,
 #' Xiaolin. ``Improving Covariate Balancing Propensity Score: A Doubly Robust
 #' and Efficient Approach.'' Unpublished Manuscript.
@@ -149,7 +149,9 @@
 #' rm(list=c("y","X","prop","treat","n","X.mis","fit1"))
 #' 
 #' ### Example: Continuous Treatment as in Fong, Hazlett, 
-#' and Imai (2018)
+#' ### and Imai (2018).  See 
+#' ### https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/AIF4PI
+#' ### for a real data example.
 #' set.seed(123456)
 #' n <- 1000
 #' X <- mvrnorm(n, mu = rep(0,2), Sigma = diag(2))
@@ -661,8 +663,8 @@ plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){
   {
     for (j in (i+1):no.treats)
     {
-      abs.mean.ori.contrasts[,ctr]<-abs(original.std.mean[covars,i+no.treats]-original.std.mean[covars,j+no.treats])
-      abs.mean.bal.contrasts[,ctr]<-abs(balanced.std.mean[covars,i+no.treats]-balanced.std.mean[covars,j+no.treats])
+      abs.mean.ori.contrasts[,ctr]<-abs(original.std.mean[,i+no.treats]-original.std.mean[,j+no.treats])
+      abs.mean.bal.contrasts[,ctr]<-abs(balanced.std.mean[,i+no.treats]-balanced.std.mean[,j+no.treats])
       contrast.names[ctr]<-paste0(i,":",j)
       true.contrast.names[ctr]<-paste0(levels(as.factor(x$y))[i],":",levels(as.factor(x$y))[j])
       
@@ -687,7 +689,7 @@ plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){
     {
       for (j in 1:length(covars))
       {
-        points(abs.mean.ori.contrasts[covars[j],i],i, ...)
+        points(abs.mean.ori.contrasts[j,i],i, ...)
       }
     }
     plot(1, type="n", xlim=c(0,max.abs.contrast), ylim=c(1,no.contrasts), xlab="", ylab="", main="", yaxt='n', ...)
@@ -700,7 +702,7 @@ plot.CBPS<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...){
     {
       for (j in 1:length(covars))
       {
-        points(abs.mean.bal.contrasts[covars[j],i],i, ...)
+        points(abs.mean.bal.contrasts[j,i],i, ...)
       }
     }
   }
@@ -765,7 +767,7 @@ plot.CBPSContinuous<-function(x, covars = NULL, silent = TRUE, boxplot = FALSE, 
     axis(side=2, at=c(1,2),c("CBPS Weighted", "Unweighted"))
   }
   
-  if(!silent) return(data.frame("covariate"=rownames(bal.x[["balanced"]]),"balanced"=balanced.abs.cor,
+  if(!silent) return(data.frame("covariate"=rownames(bal.x[["balanced"]])[covars],"balanced"=balanced.abs.cor,
                                 "original"=original.abs.cor))
 }
 

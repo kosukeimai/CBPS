@@ -18,4 +18,4 @@ version date      description
 0.18	03/09/18  Improved numerical precision and improved compatibility with systems that where long data types are disabled.  
 0.19	06/14/18  Updated CBMSM so it has three start options: CBPS, glm, and optimal, the default.  Optimal tries CBPS and glm and implements the one with the smallest criterion value.  If criterion is smaller at standard stabilized weights, those are returned.
 0.20    03/21/19  Major update on hdCBPS
-0.21	08/10/19  Documentation update.
+0.21	08/20/19  Documentation update.
