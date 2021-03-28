@@ -17,15 +17,16 @@ library(MASS)
 #' @param formula A formula of the form treat ~ X.  The same covariates are used
 #' in each time period.  At default values, a single set of coefficients is estimated
 #' across all time periods.  To allow a different set of coefficients for each 
-#' time period, set \code{time.vary = TRUE}. 
+#' time period, set \code{time.vary = TRUE}.   Data should be sorted by time.
 #' @param id A vector which identifies the unit associated with each row of
 #' treat and X.
 #' @param time A vector which identifies the time period associated with each
-#' row of treat and X.
+#' row of treat and X.  All data should be sorted by time.
 #' @param data An optional data frame, list or environment (or object coercible
 #' by as.data.frame to a data frame) containing the variables in the model. If
 #' not found in data, the variables are taken from \code{environment(formula)},
-#' typically the environment from which \code{CBMSM} is called.
+#' typically the environment from which \code{CBMSM} is called.  Data should be 
+#' sorted by time.
 #' @param twostep Set to \code{TRUE} to use a two-step estimator, which will
 #' run substantially faster than continuous-updating.  Default is \code{FALSE},
 #' which uses the continuous-updating estimator described by Imai and Ratkovic

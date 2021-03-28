@@ -1,6 +1,6 @@
 Package: CBPS
-Version: 0.21
-Date: 2019-08-20
+Version: 0.22
+Date: 2021-03-28
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
   person("Christian", "Fong", , "cjfong@umich.edu", c("aut", "cre")),
