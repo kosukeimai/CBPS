@@ -5,8 +5,15 @@
 \alias{hdCBPS.fit}
 \title{hdCBPS high dimensional CBPS method to parses the formula object and passes the result to hdCBPS.fit, which calculates ATE using CBPS method in a high dimensional setting.}
 \usage{
-hdCBPS(formula, data, na.action, y, ATT = 0, iterations = 1000,
-  method = "linear")
+hdCBPS(
+  formula,
+  data,
+  na.action,
+  y,
+  ATT = 0,
+  iterations = 1000,
+  method = "linear"
+)
 }
 \arguments{
 \item{formula}{An object of class formula (or one that can be coerced to

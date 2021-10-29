@@ -5,8 +5,19 @@
 \title{CBPS.fit determines the proper routine (what kind of treatment) and calls the 
 approporiate function.  It also pre- and post-processes the data}
 \usage{
-CBPS.fit(treat, X, baselineX, diffX, ATT, method, iterations, standardize,
-  twostep, sample.weights = sample.weights, ...)
+CBPS.fit(
+  treat,
+  X,
+  baselineX,
+  diffX,
+  ATT,
+  method,
+  iterations,
+  standardize,
+  twostep,
+  sample.weights = sample.weights,
+  ...
+)
 }
 \arguments{
 \item{treat}{A vector of treatment assignments.  Binary or multi-valued

@@ -4,8 +4,10 @@
 \name{Blackwell}
 \alias{Blackwell}
 \title{Blackwell Data for Covariate Balancing Propensity Score}
-\format{A data frame consisting of 13 columns (including treatment
-assignment, time, and identifier vectors) and 570 observations.}
+\format{
+A data frame consisting of 13 columns (including treatment
+assignment, time, and identifier vectors) and 570 observations.
+}
 \source{
 d.gone.neg is the treatment. d.gone.neg.l1, d.gone.neg.l2, and
 d.gone.neg.l3 are lagged treatment variables. camp.length, deminc,

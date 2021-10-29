@@ -4,8 +4,7 @@
 \alias{vcov_outcome.CBPSContinuous}
 \title{vcov_outcome}
 \usage{
-\method{vcov_outcome}{CBPSContinuous}(object, Y, Z, delta, tol = 10^(-5),
-  lambda = 0.01)
+\method{vcov_outcome}{CBPSContinuous}(object, Y, Z, delta, tol = 10^(-5), lambda = 0.01)
 }
 \arguments{
 \item{object}{A fitted CBPS object.}

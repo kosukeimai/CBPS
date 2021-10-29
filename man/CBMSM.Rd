@@ -4,25 +4,36 @@
 \alias{CBMSM}
 \title{Covariate Balancing Propensity Score (CBPS) for Marginal Structural Models}
 \usage{
-CBMSM(formula, id, time, data, type = "MSM", twostep = TRUE,
-  msm.variance = "approx", time.vary = FALSE, init = "opt", ...)
+CBMSM(
+  formula,
+  id,
+  time,
+  data,
+  type = "MSM",
+  twostep = TRUE,
+  msm.variance = "approx",
+  time.vary = FALSE,
+  init = "opt",
+  ...
+)
 }
 \arguments{
 \item{formula}{A formula of the form treat ~ X.  The same covariates are used
 in each time period.  At default values, a single set of coefficients is estimated
 across all time periods.  To allow a different set of coefficients for each 
-time period, set \code{time.vary = TRUE}.}
+time period, set \code{time.vary = TRUE}.   Data should be sorted by time.}
 
 \item{id}{A vector which identifies the unit associated with each row of
 treat and X.}
 
 \item{time}{A vector which identifies the time period associated with each
-row of treat and X.}
+row of treat and X.  All data should be sorted by time.}
 
 \item{data}{An optional data frame, list or environment (or object coercible
 by as.data.frame to a data frame) containing the variables in the model. If
 not found in data, the variables are taken from \code{environment(formula)},
-typically the environment from which \code{CBMSM} is called.}
+typically the environment from which \code{CBMSM} is called.  Data should be 
+sorted by time.}
 
 \item{type}{"MSM" for a marginal structural model, with multiple time
 periods or "MultiBin" for multiple binary treatments at the same time

@@ -5,8 +5,16 @@
 \title{Covariate Balancing Propensity Score for Instrumental Variable Estimates
 (CBIV)}
 \usage{
-CBIV(Tr, Z, X, iterations = 1000, method = "over", twostep = TRUE,
-  twosided = TRUE, ...)
+CBIV(
+  Tr,
+  Z,
+  X,
+  iterations = 1000,
+  method = "over",
+  twostep = TRUE,
+  twosided = TRUE,
+  ...
+)
 }
 \arguments{
 \item{Tr}{A binary treatment variable.}
