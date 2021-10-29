@@ -15,6 +15,8 @@
 #' @export
 #'
 #' @examples #GENERATING THE DATA
+#'           n=300
+#'           
 #'           #Initialize the X matrix.
 #'           X_1 <- rnorm(n,3,sqrt(2))
 #'           X_2 <- rnorm(n,0,1)
@@ -59,9 +61,9 @@
 #'           mu_hat <- mean(((T_vec)*Y_outcome/pi_hat) - (((T_vec)*Y_outcome)/(1-pi_hat)))
 #'           
 #'           #Use the AsyVar function to get the asymptotic variance of the estimated average treatment effect and its confidence interval
-#'           AsyVar(Y=Y_outcome, Y_1=Y_1_hat, Y_0=Y_0_hat, CBPS_obj=ocbps.fit, X=X_mat, TL=T_vec, pi=pi_hat, mu=mu_hat, CI=0.95)
+#'           AsyVar(Y=Y_outcome, Y_1_hat=Y_1_hat, Y_0_hat=Y_0_hat, CBPS_obj=ocbps.fit, X=X_mat, TL=T_vec, pi=pi_hat, mu=mu_hat, CI=0.95)
 #'           
-AsyVar <- function(Y, Y_1, Y_0, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
+AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
   
   n <- length(Y)
   L_hat <- mean(Y_1 - Y_0)
