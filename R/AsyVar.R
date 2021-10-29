@@ -69,14 +69,14 @@
 AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
   
   n <- length(Y)
-  L_hat <- mean(Y_1 - Y_0)
+  L_hat <- mean(Y_1_hat - Y_0_hat)
   
   if(is.null(CBPS_obj)==TRUE){ #Need X, TL, pi, mu)
     p <- ncol(X)
     n_1 <- length(which(TL==1))
     n_0 <- length(which(TL==0))
-    sigma_hat_1_squared <- sum(((Y - Y_1)*TL)^2)/(n_1-p)
-    sigma_hat_0_squared <- sum(((Y - Y_0)*(1-TL))^2)/(n_0-p)
+    sigma_hat_1_squared <- sum(((Y - Y_1_hat)*TL)^2)/(n_1-p)
+    sigma_hat_0_squared <- sum(((Y - Y_0_hat)*(1-TL))^2)/(n_0-p)
     result <- list()
     result[[1]] <- mean((sigma_hat_1_squared^2)/pi + (sigma_hat_0_squared^2)/(1-pi) + (L_hat - mu)^2)
     
@@ -94,8 +94,8 @@ AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
     p <- ncol(CBPS_obj$x)
     n_1 <- length(which(CBPS_obj$y==1))
     n_0 <- length(which(CBPS_obj$y==0))
-    sigma_hat_1_squared <- sum(((Y - Y_1)*CBPS_obj$y)^2)/(n_1-p)
-    sigma_hat_0_squared <- sum(((Y - Y_0)*(1-CBPS_obj$y))^2)/(n_0-p)
+    sigma_hat_1_squared <- sum(((Y - Y_1_hat)*CBPS_obj$y)^2)/(n_1-p)
+    sigma_hat_0_squared <- sum(((Y - Y_0_hat)*(1-CBPS_obj$y))^2)/(n_0-p)
     mu_hat <- mean(((CBPS_obj$y)*Y/CBPS_obj$fitted.values) - (((1-CBPS_obj$y)*Y)/(1-CBPS_obj$fitted.values)))
     result <- list()
     result[[1]] <- mean((sigma_hat_1_squared^2)/CBPS_obj$fitted.values + (sigma_hat_0_squared^2)/(1-CBPS_obj$fitted.values) + (L_hat - mu_hat)^2)
