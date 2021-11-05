@@ -4,8 +4,7 @@
 \alias{plot.CBPSContinuous}
 \title{Plot the pre-and-post weighting correlations between X and T}
 \usage{
-\method{plot}{CBPSContinuous}(x, covars = NULL, silent = TRUE,
-  boxplot = FALSE, ...)
+\method{plot}{CBPSContinuous}(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...)
 }
 \arguments{
 \item{x}{an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
