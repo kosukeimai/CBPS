@@ -89,9 +89,7 @@ make all weights sum to 1.  If sampling weights are used, the weight for
 each observation is multiplied by the survey sampling weight.} \item{y}{The
 treatment vector used} \item{x}{The covariate matrix} \item{model}{The model
 frame} \item{converged}{Convergence value.  Returned from the call to
-\code{optim()}.} \item{baseline.formula}{The baseline formula supplid}
-\item{diff.formula}{The difference formula supplid} 
-\item{call}{The matched call} \item{formula}{The formula
+\code{optim()}.} \item{call}{The matched call} \item{formula}{The formula
 supplied} \item{data}{The data argument} \item{coefficients}{A named vector
 of coefficients} \item{sigmasq}{The sigma-squared value, for continuous
 treatments only} \item{J}{The J-statistic at convergence} \item{mle.J}{The

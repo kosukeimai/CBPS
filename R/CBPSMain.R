@@ -79,9 +79,7 @@
 #' each observation is multiplied by the survey sampling weight.} \item{y}{The
 #' treatment vector used} \item{x}{The covariate matrix} \item{model}{The model
 #' frame} \item{converged}{Convergence value.  Returned from the call to
-#' \code{optim()}.} \item{baseline.formula}{The baseline formula supplid}
-#' \item{diff.formula}{The difference formula supplid} 
-#' \item{call}{The matched call} \item{formula}{The formula
+#' \code{optim()}.} \item{call}{The matched call} \item{formula}{The formula
 #' supplied} \item{data}{The data argument} \item{coefficients}{A named vector
 #' of coefficients} \item{sigmasq}{The sigma-squared value, for continuous
 #' treatments only} \item{J}{The J-statistic at convergence} \item{mle.J}{The
@@ -251,9 +249,6 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   fit$formula <- formula
   fit$terms<-mt
   fit
-  
-  baseline.formula <- baseline.formula
-  diff.formula <- diff.formula
 }
 
 #' CBPS.fit determines the proper routine (what kind of treatment) and calls the 
