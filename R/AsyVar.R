@@ -10,6 +10,7 @@
 #' @param mu The estimated average treatment effect obtained with the oCBPS procedure.
 #' @param CI The specified confidence level (between 0 and 1) for calculating the confidence interval forr the average treatment effect with oCBPS.
 #'
+#' @import stats
 #' @return The estimated asymptotic variance of the average treatment effect estimate obtained with the oCBPS procedure.
 #' @return The confidence interval of the average treatment effect estimate obtained with the oCBPS procedure.
 #' @export
@@ -59,7 +60,7 @@
 #'ocbps.fit <- CBPS(T_vec ~ X_mat, ATT=0, baseline.formula = ~X_mat[,c(1,3:5)], 
 #'                  diff.formula = ~X_mat[,2])
 #'pi_hat <- ocbps.fit$fitted.values 
-#'mu_hat <- mean(((T_vec)*Y_outcome/pi_hat) - (((T_vec)*Y_outcome)/(1-pi_hat)))
+#'mu_hat <- mean(((T_vec)*Y_outcome/pi_hat) - (((1-T_vec)*Y_outcome)/(1-pi_hat)))
 #'           
 #'#Use the AsyVar function to get the asymptotic variance of the 
 #'#estimated average treatment effect and its confidence interval
@@ -69,7 +70,7 @@
 AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
   
   n <- length(Y)
-  L_hat <- mean(Y_1_hat - Y_0_hat)
+  L_hat <- Y_1_hat - Y_0_hat
   
   if(is.null(CBPS_obj)==TRUE){ #Need X, TL, pi, mu)
     p <- ncol(X)
@@ -78,7 +79,7 @@ AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
     sigma_hat_1_squared <- sum(((Y - Y_1_hat)*TL)^2)/(n_1-p)
     sigma_hat_0_squared <- sum(((Y - Y_0_hat)*(1-TL))^2)/(n_0-p)
     result <- list()
-    result[[1]] <- mean((sigma_hat_1_squared^2)/pi + (sigma_hat_0_squared^2)/(1-pi) + (L_hat - mu)^2)
+    result[[1]] <- mean((sigma_hat_1_squared)/pi + (sigma_hat_0_squared)/(1-pi) + (L_hat - mu)^2)
     
     result[[2]] <- result[[1]]/n
     
@@ -87,7 +88,8 @@ AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
     upper_ocbps <- mu + diff_ocbps  
                           
     result[[3]] <- c(lower_ocbps,upper_ocbps)
-    names(result) <- c("Asymptotic Variance of sqrt(n)*mu_hat", "Asymptotic Variance of mu_hat",  paste(CI, "% Confidence Interval for mu_hat", sep=""))
+    names(result) <- c("Asymptotic Variance of sqrt(n)*mu_hat", "Asymptotic Variance of mu_hat",  
+                       paste(CI, "% Confidence Interval for mu_hat", sep=""))
     print(result)
   }
   else{
@@ -96,9 +98,11 @@ AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
     n_0 <- length(which(CBPS_obj$y==0))
     sigma_hat_1_squared <- sum(((Y - Y_1_hat)*CBPS_obj$y)^2)/(n_1-p)
     sigma_hat_0_squared <- sum(((Y - Y_0_hat)*(1-CBPS_obj$y))^2)/(n_0-p)
-    mu_hat <- mean(((CBPS_obj$y)*Y/CBPS_obj$fitted.values) - (((1-CBPS_obj$y)*Y)/(1-CBPS_obj$fitted.values)))
+    mu_hat <- mean(((CBPS_obj$y)*Y/CBPS_obj$fitted.values) - 
+                     (((1-CBPS_obj$y)*Y)/(1-CBPS_obj$fitted.values)))
     result <- list()
-    result[[1]] <- mean((sigma_hat_1_squared^2)/CBPS_obj$fitted.values + (sigma_hat_0_squared^2)/(1-CBPS_obj$fitted.values) + (L_hat - mu_hat)^2)
+    result[[1]] <- mean((sigma_hat_1_squared)/CBPS_obj$fitted.values + 
+                          (sigma_hat_0_squared)/(1-CBPS_obj$fitted.values) + (L_hat - mu_hat)^2)
     
     result[[2]] <- result[[1]]/n
     
@@ -107,7 +111,8 @@ AsyVar <- function(Y, Y_1_hat, Y_0_hat, CBPS_obj=NULL, X, TL, pi, mu, CI=0.95){
     upper_ocbps <- mu_hat + diff_ocbps  
     
     result[[3]] <- c(lower_ocbps,upper_ocbps)
-    names(result) <- c("Asymptotic Variance of sqrt(n)*mu_hat", "Asymptotic Variance of mu_hat",  paste(CI, "% Confidence Interval for mu_hat", sep=""))
+    names(result) <- c("Asymptotic Variance of sqrt(n)*mu_hat", "Asymptotic Variance of mu_hat",  
+                       paste(CI, "% Confidence Interval for mu_hat", sep=""))
     print(result)
   }
 }
