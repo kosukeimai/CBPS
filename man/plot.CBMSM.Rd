@@ -4,7 +4,8 @@
 \alias{plot.CBMSM}
 \title{Plotting CBPS Estimation for Marginal Structural Models}
 \usage{
-\method{plot}{CBMSM}(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...)
+\method{plot}{CBMSM}(x, covars = NULL, silent = TRUE,
+  boxplot = FALSE, ...)
 }
 \arguments{
 \item{x}{an object of class \dQuote{CBMSM}.}

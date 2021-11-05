@@ -39,5 +39,5 @@ LazyData: yes
 License: GPL (>= 2)
 NeedsCompilation: no
 Repository: CRAN
-RoxygenNote: 7.1.2
+RoxygenNote: 6.1.1
 Suggests: testthat

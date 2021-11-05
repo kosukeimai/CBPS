@@ -4,10 +4,8 @@
 \name{LaLonde}
 \alias{LaLonde}
 \title{LaLonde Data for Covariate Balancing Propensity Score}
-\format{
-A data frame consisting of 12 columns (including a treatment
-assignment vector) and 3212 observations.
-}
+\format{A data frame consisting of 12 columns (including a treatment
+assignment vector) and 3212 observations.}
 \source{
 Data from the National Supported Work Study.  A benchmark matching
 dataset.  Columns consist of an indicator for whether the observed unit was
