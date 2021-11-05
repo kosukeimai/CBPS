@@ -79,7 +79,7 @@ Y_0_hat <- X_mat\%*\%as.matrix(lin_0$coefficients,5,1)
 ocbps.fit <- CBPS(T_vec ~ X_mat, ATT=0, baseline.formula = ~X_mat[,c(1,3:5)], 
                  diff.formula = ~X_mat[,2])
 pi_hat <- ocbps.fit$fitted.values 
-mu_hat <- mean(((T_vec)*Y_outcome/pi_hat) - (((1-T_vec)*Y_outcome)/(1-pi_hat)))
+mu_hat <- mean(((T_vec)*Y_outcome/pi_hat) - (((T_vec)*Y_outcome)/(1-pi_hat)))
           
 #Use the AsyVar function to get the asymptotic variance of the 
 #estimated average treatment effect and its confidence interval
