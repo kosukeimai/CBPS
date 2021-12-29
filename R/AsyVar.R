@@ -1,22 +1,32 @@
-#' Asymptotic Variance of the Average Treatment Effect Obtained with the oCBPS Procedure
-#'
-#' @param Y The vector of actual outcome values (observations).
-#' @param Y_1_hat The vector of estimated outcomes according to the treatment model (user specified).
-#' @param Y_0_hat The vector of estimated outcomes according to the control model (user specified).
-#' @param CBPS_obj An object obtained with the CBPS function. This should include the vector of propensity scores and the estimated average treatment effect with the oCBPS method.
-#' @param method The specific CBPS method to be considered. Default is "CBPS", but "oCBPS" can also be selected.
-#' @param X The matrix of covariates with the rows corresponding to the observations and the columns corresponding to the variables. The left most column must be a column of 1's for the intercept.
-#' @param TL The vector of treatment labels. More specifically, the label is 1 if it is in the treatment group and 0 if it is in the control group.
-#' @param pi The vector of estimated propensity scores
-#' @param mu The estimated average treatment effect obtained with the oCBPS procedure.
-#' @param CI The specified confidence level (between 0 and 1) for calculating the confidence interval forr the average treatment effect with oCBPS.
+#' @title Asymptotic Variance and Confidence Interval Estimation of the ATE
+#' @description
+#' \code{AsyVar} estimates the asymptotic variance of the ATE obtained with the CBPS or oCBPS method. It also returns the finite variance estimate, the finite standard error, and a CI for the ATE. 
 #'
 #' @import stats
-#' @return \item{mu.hat}{The estimated average treatment effect \eqn{\hat{\mu}}.} 
-#' \item{asy.var}{The estimated asymptotic variance of \eqn{\sqrt{n}*\hat{\mu}}} obtained with the CBPS or oCBPS procedure.} 
-#' \item{fin.var}{The estimated finite variance of \eqn{\hat{\mu}} obtained with the CBPS or oCBPS procedure.}
-#' \item{fin.std.err}{The finite standard error of \eqn{\hat{\mu}} obtained with the CBPS or oCBPS procedure.}
-#' \item{CI.mu.hat}{The confidence interval of \eqn{\hat{\mu}} obtained with the CBPS or oCBPS procedure with the confidence level specified in the input argument.}
+#'
+#' @param Y The vector of actual outcome values (observations).
+#' @param Y_1_hat The vector of estimated outcomes according to the treatment model. (AsyVar automatically sets the treatment model as a linear regression model and it is fitted within the function.) If \code{CBPS_obj} is specified, or if \code{X} \eqn{and} \code{TL} are specified, this is unnecessary.
+#' @param Y_0_hat The vector of estimated outcomes according to the control model. (AsyVar automatically sets the control model as a linear regression model and it is fitted within the function.) If \code{CBPS_obj} is specified, or if \code{X} \eqn{and} \code{TL} are specified, this is unnecessary.
+#' @param CBPS_obj An object obtained with the CBPS function. If this object is not sepecified, then \code{X}, \code{TL}, \code{pi}, and \code{mu} must \eqn{all} be specified instead. 
+#' @param method The specific method to be considered. Either \code{"CBPS"} or \code{"oCBPS"} must be selected.
+#' @param X The matrix of covariates with the rows corresponding to the observations and the columns corresponding to the variables. The left most column must be a column of 1's for the intercept. (\code{X} is not necessary if \code{CBPS_obj} is specified.)
+#' @param TL The vector of treatment labels. More specifically, the label is 1 if it is in the treatment group and 0 if it is in the control group. (\code{TL} is not necessary if \code{CBPS_obj} is specified.)
+#' @param pi The vector of estimated propensity scores. (\code{pi} is not necessary if \code{CBPS_obj} is specified.)
+#' @param mu The estimated average treatment effect obtained with either the CBPS or oCBPS method. (\code{mu} is not necessary if \code{CBPS_obj} is specified.)
+#' @param CI The specified confidence level (between 0 and 1) for calculating the confidence interval for the average treatment effect. Default value is 0.95.
+#'
+#' @return 
+#' \item{mu.hat}{The estimated average treatment effect, \eqn{hat{\mu}}{hat{\mu}}.} 
+#' \item{asy.var}{The estimated asymptotic variance of \eqn{\sqrt{n}*hat{\mu}}{\sqrt{n}*hat{\mu}} obtained with the CBPS or oCBPS method.} 
+#' \item{var}{The estimated variance of \eqn{hat{\mu}}{hat{\mu}} obtained with the CBPS or oCBPS method.}
+#' \item{std.err}{The standard error of \eqn{hat{\mu}}{hat{\mu}} obtained with the CBPS or oCBPS method.}
+#' \item{CI.mu.hat}{The confidence interval of \eqn{hat{\mu}}{hat{\mu}} obtained with the CBPS or oCBPS method with the confidence level specified in the input argument.}
+#' 
+#' @author Inbeom Lee
+#' 
+#' @references Fan, Jianqing and Imai, Kosuke and Lee, Inbeom and Liu, Han and Ning, Yang and Yang, Xiaolin. 2021. 
+#' ``Optimal Covariate Balancing Conditions in Propensity Score Estimation.'' Journal of Business & Economic Statistics. 
+#' \url{https://imai.fas.harvard.edu/research/CBPStheory.html} 
 #'
 #' @examples #GENERATING THE DATA
 #'n=300
@@ -52,7 +62,6 @@
 #'
 #'#Use CBPS.
 #'cbps.fit <- CBPS(T_vec ~ X_mat, ATT=0)
-#'                 
 #' 
 #'#Use the AsyVar function to get the asymptotic variance of the
 #'#estimated average treatment effect and its confidence interval when using CBPS.
@@ -83,6 +92,16 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
     }
   } 
   
+  #Parameter values
+  p <- ncol(X)
+  n <- length(Y)
+  
+  Y_1 <- Y[which(TL==1)]
+  Y_0 <- Y[which(TL==0)]
+  
+  n_1 <- length(Y_1)
+  n_0 <- length(Y_0)
+  
   #Define pi in all cases.
   if(is.null(pi)==TRUE && is.null(CBPS_obj)==TRUE){
     stop('Need to specify either a vector of estimated propensity scores (pi)
@@ -104,15 +123,8 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
     }
   }
   
-  
-  p <- ncol(X)
-  n <- length(Y)
-  n_1 <- length(Y_1)
-  n_0 <- length(Y_0)
-  
   #Fit the linear regression model for TL=1 and TL=0 separately.
   if(is.null(Y_1_hat)==TRUE){
-    Y_1 <- Y[which(TL==1)]
     
     #Separate the treatment covariates and the control covariates. 
     X_1 <- as.matrix(X[which(TL==1),-1])
@@ -125,7 +137,6 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
   }
   
   if(is.null(Y_0_hat)==TRUE){
-    Y_0 <- Y[which(TL==0)]
     
     #Separate the treatment covariates and the control covariates. 
     X_0 <- as.matrix(X[which(TL==0),-1])
@@ -136,6 +147,7 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
     #Y_hat(0|X_i) values 
     Y_0_hat <- X%*%as.matrix(lin_0$coefficients,p,1)  
   }
+  
   
   L_hat <- Y_1_hat - Y_0_hat
   K_hat <- Y_0_hat
@@ -160,25 +172,19 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
     lower_ocbps <- mu - diff_ocbps
     upper_ocbps <- mu + diff_ocbps  
     
-    result[[5]] <- c(lower_ocbps,upper_ocbps)
-    names(result) <- c("hat(mu)", "Asymptotic Variance of sqrt(n)*hat(mu)_{oCBPS}", "Variance of hat(mu)_{oCBPS}",  
-                       "Standard Error of hat(mu)_{oCBPS}", paste(CI, "% Confidence Interval for hat(mu)_{oCBPS}", sep=""))
+    result[[5]] <- c(lower_ocbps, upper_ocbps)
     
-    mu.hat <- result[[1]]
-    asy.var <- result[[2]]
-    fin.var <- result[[3]]
-    fin.std.err <- result[[4]]
-    CI.mu.hat <- result[[5]]
+    names(result) <- c("mu.hat", "asy.var", "var",  "std.err", "CI.mu.hat")
     
-    print(result)
+    return(result)
+    
   } else {
     if(method=="CBPS"){
       
-      #omega_hat (Look at the Var(g_beta) formula on page 7 in the paper! 
-      #Because this is omega_hat according to page 35 right under (A.2).)
+      #omega_hat 
       new_X_2 <- array(rep(NA,p*p*n),dim=c(p,p,n))
       for(i in 1:n){
-        new_X_2[,,i] <- matrix(X[i,],p,1)%*%matrix(X[i,],1,p)/(pi[i]*(1-pi[i]))
+        new_X_2[,,i] <- matrix(X[i,],p,1)%*%t(X[i,])/(pi[i]*(1-pi[i]))
       }
       omega_hat <- apply(new_X_2,c(1,2),mean)
       
@@ -190,7 +196,7 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
       #Cov(mu_beta, g_beta)
       new_X_3 <- matrix(rep(NA,n*p),n,p)
       for(i in 1:n){
-        new_X_3[i,] <- X[i,]*( (Y_1_hat[i]/pi[i]) + (Y_0_hat[i]/(1-pi[i])))
+        new_X_3[i,] <- X[i,]*(K_hat[i] + (1-pi[i])*L_hat[i])/(pi[i]*(1-pi[i]))
       }
       
       cov_hat <- apply(new_X_3,2,mean)
@@ -201,12 +207,12 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
       der_mat <- matrix(rep(prop_modified,each=p),p,n)
       derivative <- matrix(rep(NA,p*n),p,n)
       for(i in 1:n){
-        derivative[,i] <- matrix(der_mat[,i]*t(X[i,]),p,1) 
+        derivative[,i] <- matrix(der_mat[,i]*X[i,],p,1) 
       }
       
       temp_sum <- matrix(rep(0,p),p,1)
       for(i in 1:n){
-        temp_sum <- temp_sum + derivative[,i]*( (Y_1_hat[i]/pi[i]) + (Y_0_hat[i]/(1-pi[i])))
+        temp_sum <- temp_sum + derivative[,i]*(K_hat[i] + (1-pi[i])*L_hat[i])/(pi[i]*(1-pi[i]))
       }
       H_0_hat <- -temp_sum/n
       
@@ -231,24 +237,15 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
       
       result[[4]] <- sqrt(result[[3]])
       
-      diff_ocbps <- stats::qnorm(1-(1-CI)/2)*result[[4]]
-      lower_ocbps <- mu - diff_ocbps
-      upper_ocbps <- mu + diff_ocbps  
+      diff_cbps <- stats::qnorm(1-(1-CI)/2)*result[[4]]
+      lower_cbps <- mu - diff_cbps
+      upper_cbps <- mu + diff_cbps  
       
-      result[[5]] <- c(lower_ocbps, upper_ocbps)
-      names(result) <- c("hat(mu)", "Asymptotic Variance of sqrt(n)*hat(mu)_{CBPS}", "Variance of hat(mu)_{CBPS}",  
-                         "Standard Error of hat(mu)_{CBPS}", paste(CI, "% Confidence Interval for hat(mu)_{CBPS}", sep=""))
+      result[[5]] <- c(lower_cbps, upper_cbps)
       
-      mu.hat <- result[[1]]
-      asy.var <- result[[2]]
-      fin.var <- result[[3]]
-      fin.std.err <- result[[4]]
-      CI.mu.hat <- result[[5]]
+      names(result) <- c("mu.hat", "asy.var", "var",  "std.err", "CI.mu.hat")
       
-      print(result)
+      return(result)
     }
   }
 }
-
-
-

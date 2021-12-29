@@ -2,7 +2,7 @@
 % Please edit documentation in R/AsyVar.R
 \name{AsyVar}
 \alias{AsyVar}
-\title{Asymptotic Variance of the Average Treatment Effect Obtained with the oCBPS Procedure}
+\title{Asymptotic Variance and Confidence Interval Estimation of the ATE}
 \usage{
 AsyVar(
   Y,
@@ -20,29 +20,33 @@ AsyVar(
 \arguments{
 \item{Y}{The vector of actual outcome values (observations).}
 
-\item{Y_1_hat}{The vector of estimated outcomes according to the treatment model (user specified).}
+\item{Y_1_hat}{The vector of estimated outcomes according to the treatment model. (AsyVar automatically sets the treatment model as a linear regression model and it is fitted within the function.) If \code{CBPS_obj} is specified, or if \code{X} \eqn{and} \code{TL} are specified, this is unnecessary.}
 
-\item{Y_0_hat}{The vector of estimated outcomes according to the control model (user specified).}
+\item{Y_0_hat}{The vector of estimated outcomes according to the control model. (AsyVar automatically sets the control model as a linear regression model and it is fitted within the function.) If \code{CBPS_obj} is specified, or if \code{X} \eqn{and} \code{TL} are specified, this is unnecessary.}
 
-\item{CBPS_obj}{An object obtained with the CBPS function. This should include the vector of propensity scores and the estimated average treatment effect with the oCBPS method.}
+\item{CBPS_obj}{An object obtained with the CBPS function. If this object is not sepecified, then \code{X}, \code{TL}, \code{pi}, and \code{mu} must \eqn{all} be specified instead.}
 
-\item{method}{The specific CBPS method to be considered. Default is "CBPS", but "oCBPS" can also be selected.}
+\item{method}{The specific method to be considered. Either \code{"CBPS"} or \code{"oCBPS"} must be selected.}
 
-\item{X}{The matrix of covariates with the rows corresponding to the observations and the columns corresponding to the variables. The left most column must be a column of 1's for the intercept.}
+\item{X}{The matrix of covariates with the rows corresponding to the observations and the columns corresponding to the variables. The left most column must be a column of 1's for the intercept. (\code{X} is not necessary if \code{CBPS_obj} is specified.)}
 
-\item{TL}{The vector of treatment labels. More specifically, the label is 1 if it is in the treatment group and 0 if it is in the control group.}
+\item{TL}{The vector of treatment labels. More specifically, the label is 1 if it is in the treatment group and 0 if it is in the control group. (\code{TL} is not necessary if \code{CBPS_obj} is specified.)}
 
-\item{pi}{The vector of estimated propensity scores}
+\item{pi}{The vector of estimated propensity scores. (\code{pi} is not necessary if \code{CBPS_obj} is specified.)}
 
-\item{mu}{The estimated average treatment effect obtained with the oCBPS procedure.}
+\item{mu}{The estimated average treatment effect obtained with either the CBPS or oCBPS method. (\code{mu} is not necessary if \code{CBPS_obj} is specified.)}
 
-\item{CI}{The specified confidence level (between 0 and 1) for calculating the confidence interval forr the average treatment effect with oCBPS.}
+\item{CI}{The specified confidence level (between 0 and 1) for calculating the confidence interval for the average treatment effect. Default value is 0.95.}
 }
 \value{
-
+\item{mu.hat}{The estimated average treatment effect, \eqn{hat{\mu}}{hat{\mu}}.} 
+\item{asy.var}{The estimated asymptotic variance of \eqn{\sqrt{n}*hat{\mu}}{\sqrt{n}*hat{\mu}} obtained with the CBPS or oCBPS method.} 
+\item{var}{The estimated variance of \eqn{hat{\mu}}{hat{\mu}} obtained with the CBPS or oCBPS method.}
+\item{std.err}{The standard error of \eqn{hat{\mu}}{hat{\mu}} obtained with the CBPS or oCBPS method.}
+\item{CI.mu.hat}{The confidence interval of \eqn{hat{\mu}}{hat{\mu}} obtained with the CBPS or oCBPS method with the confidence level specified in the input argument.}
 }
 \description{
-Asymptotic Variance of the Average Treatment Effect Obtained with the oCBPS Procedure
+\code{AsyVar} estimates the asymptotic variance of the ATE obtained with the CBPS or oCBPS method. It also returns the finite variance estimate, the finite standard error, and a CI for the ATE.
 }
 \examples{
 #GENERATING THE DATA
@@ -79,10 +83,17 @@ AsyVar(Y=Y_outcome, CBPS_obj=ocbps.fit, method="oCBPS", CI=0.95)
 
 #Use CBPS.
 cbps.fit <- CBPS(T_vec ~ X_mat, ATT=0)
-                
 
 #Use the AsyVar function to get the asymptotic variance of the
 #estimated average treatment effect and its confidence interval when using CBPS.
 AsyVar(Y=Y_outcome, CBPS_obj=cbps.fit, method="CBPS", CI=0.95)
 
+}
+\references{
+Fan, Jianqing and Imai, Kosuke and Lee, Inbeom and Liu, Han and Ning, Yang and Yang, Xiaolin. 2021. 
+``Optimal Covariate Balancing Conditions in Propensity Score Estimation.'' Journal of Business & Economic Statistics. 
+\url{https://imai.fas.harvard.edu/research/CBPStheory.html}
+}
+\author{
+Inbeom Lee
 }
