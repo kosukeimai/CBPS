@@ -12,9 +12,11 @@
 #' @param CI The specified confidence level (between 0 and 1) for calculating the confidence interval forr the average treatment effect with oCBPS.
 #'
 #' @import stats
-#' @return The estimated asymptotic variance of the average treatment effect estimate obtained with the oCBPS procedure.
-#' @return The confidence interval of the average treatment effect estimate obtained with the oCBPS procedure.
-#' @export
+#' @return \item{mu.hat}{The estimated average treatment effect \eqn{\hat{\mu}}.} 
+#' \item{asy.var}{The estimated asymptotic variance of \eqn{\sqrt{n}*\hat{\mu}}} obtained with the CBPS or oCBPS procedure.} 
+#' \item{fin.var}{The estimated finite variance of \eqn{\hat{\mu}} obtained with the CBPS or oCBPS procedure.}
+#' \item{fin.std.err}{The finite standard error of \eqn{\hat{\mu}} obtained with the CBPS or oCBPS procedure.}
+#' \item{CI.mu.hat}{The confidence interval of \eqn{\hat{\mu}} obtained with the CBPS or oCBPS procedure with the confidence level specified in the input argument.}
 #'
 #' @examples #GENERATING THE DATA
 #'n=300
@@ -55,7 +57,9 @@
 #'#Use the AsyVar function to get the asymptotic variance of the
 #'#estimated average treatment effect and its confidence interval when using CBPS.
 #'AsyVar(Y=Y_outcome, CBPS_obj=cbps.fit, method="CBPS", CI=0.95)
-#'           
+#' 
+#' @export AsyVar
+#'        
 AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
                    X=NULL, TL=NULL, pi=NULL, mu=NULL, CI=0.95){
   
@@ -143,17 +147,29 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
     sigma_hat_0_squared <- sum(((Y - Y_0_hat)*(1-TL))^2)/(n_0-p)
     
     result <- list()
-    result[[1]] <- mean((sigma_hat_1_squared)/pi + (sigma_hat_0_squared)/(1-pi) + (L_hat - mu)^2)
     
-    result[[2]] <- result[[1]]/n
+    result[[1]] <- mu
     
-    diff_ocbps <- stats::qnorm(1-(1-CI)/2)*sqrt(result[[2]])
+    result[[2]] <- mean((sigma_hat_1_squared)/pi + (sigma_hat_0_squared)/(1-pi) + (L_hat - mu)^2)
+    
+    result[[3]] <- result[[2]]/n
+    
+    result[[4]] <- sqrt(result[[3]])
+    
+    diff_ocbps <- stats::qnorm(1-(1-CI)/2)*result[[4]]
     lower_ocbps <- mu - diff_ocbps
     upper_ocbps <- mu + diff_ocbps  
     
-    result[[3]] <- c(lower_ocbps,upper_ocbps)
-    names(result) <- c("Asymptotic Variance of sqrt(n)*hat(mu)_{oCBPS}", "Asymptotic Variance of hat(mu)_{oCBPS}",  
-                       paste(CI, "% Confidence Interval for hat(mu)_{oCBPS}", sep=""))
+    result[[5]] <- c(lower_ocbps,upper_ocbps)
+    names(result) <- c("hat(mu)", "Asymptotic Variance of sqrt(n)*hat(mu)_{oCBPS}", "Variance of hat(mu)_{oCBPS}",  
+                       "Standard Error of hat(mu)_{oCBPS}", paste(CI, "% Confidence Interval for hat(mu)_{oCBPS}", sep=""))
+    
+    mu.hat <- result[[1]]
+    asy.var <- result[[2]]
+    fin.var <- result[[3]]
+    fin.std.err <- result[[4]]
+    CI.mu.hat <- result[[5]]
+    
     print(result)
   } else {
     if(method=="CBPS"){
@@ -206,18 +222,30 @@ AsyVar <- function(Y, Y_1_hat=NULL, Y_0_hat=NULL, CBPS_obj, method="CBPS",
       #Put it all together
       result <- list()
       
-      result[[1]] <- Sigma_mu_hat + t(H_0_hat)%*%solve(t(H_f_hat)%*%solve(omega_hat)%*%H_f_hat)%*%H_0_hat -
+      result[[1]] <- mu
+      
+      result[[2]] <- Sigma_mu_hat + t(H_0_hat)%*%solve(t(H_f_hat)%*%solve(omega_hat)%*%H_f_hat)%*%H_0_hat -
         2*t(H_0_hat)%*%solve(H_f_hat)%*%cov_hat
       
-      result[[2]] <- result[[1]]/n
+      result[[3]] <- result[[2]]/n
       
-      diff_ocbps <- stats::qnorm(1-(1-CI)/2)*sqrt(result[[2]])
+      result[[4]] <- sqrt(result[[3]])
+      
+      diff_ocbps <- stats::qnorm(1-(1-CI)/2)*result[[4]]
       lower_ocbps <- mu - diff_ocbps
       upper_ocbps <- mu + diff_ocbps  
       
-      result[[3]] <- c(lower_ocbps, upper_ocbps)
-      names(result) <- c("Asymptotic Variance of sqrt(n)*hat(mu)_{CBPS}", "Asymptotic Variance of hat(mu)_{CBPS}",  
-                         paste(CI, "% Confidence Interval for hat(mu)_{CBPS}", sep=""))
+      result[[5]] <- c(lower_ocbps, upper_ocbps)
+      names(result) <- c("hat(mu)", "Asymptotic Variance of sqrt(n)*hat(mu)_{CBPS}", "Variance of hat(mu)_{CBPS}",  
+                         "Standard Error of hat(mu)_{CBPS}", paste(CI, "% Confidence Interval for hat(mu)_{CBPS}", sep=""))
+      
+      mu.hat <- result[[1]]
+      asy.var <- result[[2]]
+      fin.var <- result[[3]]
+      fin.std.err <- result[[4]]
+      CI.mu.hat <- result[[5]]
+      
+      print(result)
     }
   }
 }

@@ -39,9 +39,7 @@ AsyVar(
 \item{CI}{The specified confidence level (between 0 and 1) for calculating the confidence interval forr the average treatment effect with oCBPS.}
 }
 \value{
-The estimated asymptotic variance of the average treatment effect estimate obtained with the oCBPS procedure.
 
-The confidence interval of the average treatment effect estimate obtained with the oCBPS procedure.
 }
 \description{
 Asymptotic Variance of the Average Treatment Effect Obtained with the oCBPS Procedure
@@ -86,5 +84,5 @@ cbps.fit <- CBPS(T_vec ~ X_mat, ATT=0)
 #Use the AsyVar function to get the asymptotic variance of the
 #estimated average treatment effect and its confidence interval when using CBPS.
 AsyVar(Y=Y_outcome, CBPS_obj=cbps.fit, method="CBPS", CI=0.95)
-          
+
 }
