@@ -3,13 +3,13 @@ Version: 0.23
 Date: 2022-01-18
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
-  person("Christian", "Fong", , "cjfong@umich.edu", c("aut", "cre")),
-  person("Marc", "Ratkovic", , "ratkovic@princeton.edu", c("aut")),
-  person("Kosuke", "Imai", , "imai@Harvard.Edu", c("aut")),
-  person("Chad", "Hazlett", , "chazlett@ucla.edu", c("ctb")),
-  person("Xiaolin", "Yang", , "xiaoliny@princeton.edu", c("ctb")),
-  person("Sida", "Peng", , "sp947@cornell.edu", c("ctb")),
-  person("Inbeom", "Lee", , "il279@cornell.edu", c("ctb"))
+  person("Christian", "Fong", email = "cjfong@umich.edu", role = c("aut", "cre")),
+  person("Marc", "Ratkovic", email = "ratkovic@princeton.edu", role = c("aut")),
+  person("Kosuke", "Imai", email = "imai@Harvard.Edu", role = c("aut")),
+  person("Chad", "Hazlett", email = "chazlett@ucla.edu", role = c("ctb")),
+  person("Xiaolin", "Yang", email = "xiaoliny@princeton.edu", role = c("ctb")),
+  person("Sida", "Peng", email = "sp947@cornell.edu", role = c("ctb")),
+  person("Inbeom", "Lee", email = "il279@cornell.edu", role = c("ctb"))
   )
 Depends:
     R (>= 3.4),
