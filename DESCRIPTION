@@ -1,6 +1,6 @@
 Package: CBPS
-Version: 0.22
-Date: 2021-03-28
+Version: 0.23
+Date: 2022-01-18
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
   person("Christian", "Fong", , "cjfong@umich.edu", c("aut", "cre")),
@@ -8,7 +8,8 @@ Authors@R: c(
   person("Kosuke", "Imai", , "imai@Harvard.Edu", c("aut")),
   person("Chad", "Hazlett", , "chazlett@ucla.edu", c("ctb")),
   person("Xiaolin", "Yang", , "xiaoliny@princeton.edu", c("ctb")),
-  person("Sida", "Peng", , "sp947@cornell.edu", c("ctb"))
+  person("Sida", "Peng", , "sp947@cornell.edu", c("ctb")),
+  person("Inbeom", "Lee", , "il279@cornell.edu", c("ctb"))
   )
 Depends:
     R (>= 3.4),
@@ -23,14 +24,14 @@ Description: Implements the covariate balancing propensity score (CBPS) proposed
     estimated such that it maximizes the resulting covariate balance as well as the
     prediction of treatment assignment. The method, therefore, avoids an iteration
     between model fitting and balance checking.  The package also implements optimal
-    CBPS from Fan et al. (2016) <https://imai.fas.harvard.edu/research/CBPStheory.html>,  
+    CBPS from Fan et al. (in-press) <DOI:10.1080/07350015.2021.2002159>,  
     several extensions of the CBPS beyond the cross-sectional, binary treatment setting.
     They include the CBPS for longitudinal settings so that it can be used in 
     conjunction with marginal structural models from Imai and Ratkovic (2015) 
     <DOI:10.1080/01621459.2014.956872>, treatments with three- and four-valued treatment 
     variables, continuous-valued treatments from Fong, Hazlett, and Imai (2018) 
     <DOI:10.1214/17-AOAS1101>, propensity score estimation with a large number of 
-    covariates from Ning, Peng, and Imai (2018) <arXiv:1812.08683>, and the situation 
+    covariates from Ning, Peng, and Imai (2020) <DOI:10.1093/biomet/asaa020>, and the situation 
     with multiple distinct binary treatments administered simultaneously. In the future 
     it will be extended to other settings including the generalization of experimental 
     and instrumental variable estimates. 
