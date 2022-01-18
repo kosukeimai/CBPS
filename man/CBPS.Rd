@@ -4,10 +4,20 @@
 \alias{CBPS}
 \title{Covariate Balancing Propensity Score (CBPS) Estimation}
 \usage{
-CBPS(formula, data, na.action, ATT = 1, iterations = 1000,
-  standardize = TRUE, method = "over", twostep = TRUE,
-  sample.weights = NULL, baseline.formula = NULL,
-  diff.formula = NULL, ...)
+CBPS(
+  formula,
+  data,
+  na.action,
+  ATT = 1,
+  iterations = 1000,
+  standardize = TRUE,
+  method = "over",
+  twostep = TRUE,
+  sample.weights = NULL,
+  baseline.formula = NULL,
+  diff.formula = NULL,
+  ...
+)
 }
 \arguments{
 \item{formula}{An object of class \code{formula} (or one that can be coerced

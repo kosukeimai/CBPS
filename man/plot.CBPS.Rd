@@ -4,8 +4,7 @@
 \alias{plot.CBPS}
 \title{Plotting Covariate Balancing Propensity Score Estimation}
 \usage{
-\method{plot}{CBPS}(x, covars = NULL, silent = TRUE, boxplot = FALSE,
-  ...)
+\method{plot}{CBPS}(x, covars = NULL, silent = TRUE, boxplot = FALSE, ...)
 }
 \arguments{
 \item{x}{an object of class \dQuote{CBPS} or \dQuote{npCBPS}, usually, a
