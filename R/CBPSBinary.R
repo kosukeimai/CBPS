@@ -84,9 +84,8 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
         X.1.1<- sample.weights^.5*X
       }
       if (ATT){
-        V<-rbind(1/n*cbind(t(X.1)%*%X.1,t(X.1.1)%*%X.1.1*n/sum(treat)), 
-                 1/n*cbind(t(X.1.1)%*%X.1.1*n/sum(treat),t(X.2)%*%X.2*n^2/sum(treat)^2)) 
-        
+        V<-rbind(1/n*cbind(t(X.1)%*%X.1,t(X.1.1)%*%X.1.1*n/sum(treat)),
+                 1/n*cbind(t(X.1.1)%*%X.1.1*n/sum(treat),t(X.2)%*%X.2*n^2/sum(treat)^2))
       }
       else{
         V<-rbind(1/n*cbind(t(X.1)%*%X.1,t(X.1.1)%*%X.1.1),
