@@ -1,15 +1,15 @@
 Package: CBPS
-Version: 0.23
-Date: 2022-01-18
+Version: 0.24
+Date: 2025-11-30
 Title: Covariate Balancing Propensity Score
 Authors@R: c(
   person("Christian", "Fong", email = "cjfong@umich.edu", role = c("aut", "cre")),
-  person("Marc", "Ratkovic", email = "ratkovic@princeton.edu", role = c("aut")),
+  person("Marc", "Ratkovic", email = "marc.ratkovic@uni-mannheim.de", role = c("aut")),
   person("Kosuke", "Imai", email = "imai@Harvard.Edu", role = c("aut")),
   person("Chad", "Hazlett", email = "chazlett@ucla.edu", role = c("ctb")),
   person("Xiaolin", "Yang", email = "xiaoliny@princeton.edu", role = c("ctb")),
-  person("Sida", "Peng", email = "sp947@cornell.edu", role = c("ctb")),
-  person("Inbeom", "Lee", email = "il279@cornell.edu", role = c("ctb"))
+  person("Sida", "Peng", email = "sidpeng@microsoft.com", role = c("ctb")),
+  person("Inbeom", "Lee", email = "inbeom.lee@chicagobooth.edu", role = c("ctb"))
   )
 Depends:
     R (>= 3.4),
