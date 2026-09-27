@@ -117,8 +117,7 @@ fit2<-CBMSM(formula = form1, time=Blackwell$time,id=Blackwell$demName,
 bal1<-balance.CBMSM(fit1)
 bal2<-balance.CBMSM(fit2)
 
-##Effect estimation: Replicating Effect Estimates in 
-##Table 3 of Imai and Ratkovic (2014)
+##Effect estimation:
 
 lm1<-lm(demprcnt[time==1]~fit1$treat.hist,data=Blackwell,
 weights=fit1$glm.weights)
