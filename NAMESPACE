@@ -22,38 +22,44 @@ export(hdCBPS)
 export(npCBPS)
 export(vcov_outcome)
 import(stats)
-importFrom(MASS,ginv)
-importFrom(MASS,mvrnorm)
+importFrom(MASS,
+  ginv,
+  mvrnorm
+)
 importFrom(MatchIt,matchit)
 importFrom(glmnet,cv.glmnet)
-importFrom(graphics,abline)
-importFrom(graphics,axis)
-importFrom(graphics,layout)
-importFrom(graphics,mtext)
-importFrom(graphics,par)
-importFrom(graphics,plot)
-importFrom(graphics,points)
+importFrom(graphics,
+  abline,
+  axis,
+  layout,
+  mtext,
+  par,
+  plot,
+  points
+)
 importFrom(nnet,multinom)
 importFrom(numDeriv,jacobian)
-importFrom(stats,.getXlevels)
-importFrom(stats,as.formula)
-importFrom(stats,binomial)
-importFrom(stats,coef)
-importFrom(stats,cor)
-importFrom(stats,dnorm)
-importFrom(stats,glm)
-importFrom(stats,is.empty.model)
-importFrom(stats,lm)
-importFrom(stats,model.frame)
-importFrom(stats,model.matrix)
-importFrom(stats,model.response)
-importFrom(stats,naprint)
-importFrom(stats,optim)
-importFrom(stats,optimize)
-importFrom(stats,pnorm)
-importFrom(stats,predict)
-importFrom(stats,sd)
-importFrom(stats,symnum)
-importFrom(stats,terms)
-importFrom(stats,var)
+importFrom(stats,
+  .getXlevels,
+  as.formula,
+  binomial,
+  coef,
+  cor,
+  dnorm,
+  glm,
+  is.empty.model,
+  lm,
+  model.frame,
+  model.matrix,
+  model.response,
+  naprint,
+  optim,
+  optimize,
+  pnorm,
+  predict,
+  sd,
+  symnum,
+  terms,
+  var
+)
 importFrom(utils,packageDescription)

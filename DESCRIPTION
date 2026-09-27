@@ -40,5 +40,5 @@ LazyData: yes
 License: GPL (>= 2)
 NeedsCompilation: no
 Repository: CRAN
-RoxygenNote: 7.1.2
 Suggests: testthat
+Config/roxygen2/version: 8.1.0
