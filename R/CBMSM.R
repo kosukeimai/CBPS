@@ -200,7 +200,9 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
     names.X<-c("Intercept",colnames(X)[-1])
   }
 
-  fit <- eval(call("CBMSM.fit", treat = Y, X = X, id = id, time=time, 
+  ## CBMSM.fit and msm.loss.func index periods as 1..T, so pass the position
+  ## of each time value rather than the value itself (years, 0-based, gaps).
+  fit <- eval(call("CBMSM.fit", treat = Y, X = X, id = id, time=match(time, unique.time), 
                    MultiBin.fit = MultiBin.fit, twostep = twostep, msm.variance = msm.variance,
                    time.vary = time.vary, init = init))    
   
@@ -295,12 +297,11 @@ for(i in sort(unique(time))){
 	}
 ##Make matrix of time-varying glm starting vals
 cbps.coefs<-glm.coefs<-NULL
-unique.time<-sort(unique(time))
-n.time<-length(unique.time)
+n.time<-length(unique(time))
 for(i in 1:n.time){
-	glm1<-summary(glm(treat~X.svd, subset=(time==unique.time[i])))$coefficients[,1]
+	glm1<-summary(glm(treat~X.svd, subset=(time==i)))$coefficients[,1]
 	glm.cb<-glm1
-	glm.cb<-CBPS(treat[time==unique.time[i]]~X.svd[time==unique.time[i],], ATT=0,method="exact")$coefficients
+	glm.cb<-CBPS(treat[time==i]~X.svd[time==i,], ATT=0,method="exact")$coefficients
 	glm.coefs<-cbind(glm.coefs,glm1)
 	cbps.coefs<-cbind(cbps.coefs,glm.cb)
 	}
@@ -367,8 +368,7 @@ n.time<-length(unique(time))
 
 treat.hist<-matrix(NA,nrow=n.obs,ncol=n.time)
 name.cands<-sort(unique(id))
-unique.time<-sort(unique(time))
-for(i in 1:n.obs) for(j in 1:n.time) treat.hist[i,j]<-treat[id==name.cands[i] & time==unique.time[j] ]
+for(i in 1:n.obs) for(j in 1:n.time) treat.hist[i,j]<-treat[id==name.cands[i] & time==j ]
 
 treat.hist.unique<-unique(treat.hist,MAR=1)
 
@@ -391,7 +391,7 @@ for(i in 1:n.obs) {for(j in 1:n.obs) {
 ##Produce Weights
 ###########
 
-wts.out<-rep(uncond.probs.cand/msm.fit$pr,n.time)[time==min(time)]
+wts.out<-rep(uncond.probs.cand/msm.fit$pr,n.time)[time==1]
 probs.out<-msm.fit$pr
 uncond.probs<-uncond.probs.cand
 
@@ -404,7 +404,7 @@ if(loss.glm<loss.msm){
 
 # I know I'm putting probs.out in the weights and wts.out in the fitted values, but that
 # is what Marc said to do
-out<-list("weights"=probs.out,"fitted.values"=wts.out,"id"=id0[1:n.obs],"glm.g"=glm.fit$g.all,"msm.g"=msm.fit$g.all,"glm.weights"=(uncond.probs/glm.fit$pr)[time==min(time)])
+out<-list("weights"=probs.out,"fitted.values"=wts.out,"id"=id0[1:n.obs],"glm.g"=glm.fit$g.all,"msm.g"=msm.fit$g.all,"glm.weights"=(uncond.probs/glm.fit$pr)[time==1])
 class(out)<-c("CBMSM","list")
 return(out)
 }
