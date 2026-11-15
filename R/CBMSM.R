@@ -178,12 +178,13 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
   ##Format treatment matrix
      	id<-as.numeric(as.factor(id))
 		unique.id<-sort(unique(id))
-		treat.hist<-matrix(NA,nrow=length(unique.id),ncol=length(unique(time)))
-		colnames(treat.hist)<-sort(unique(time))
+		unique.time<-sort(unique(time))
+		treat.hist<-matrix(NA,nrow=length(unique.id),ncol=length(unique.time))
+		colnames(treat.hist)<-unique.time
 		rownames(treat.hist)<-unique.id
-		for(i in 1:length(unique(unique.id))) for(j in sort(unique(time)))
+		for(i in 1:length(unique(unique.id))) for(j in seq_along(unique.time))
 		{{
-		treat.hist[i,j]<-Y[id==unique.id[i] & time==j]
+		treat.hist[i,j]<-Y[id==unique.id[i] & time==unique.time[j]]
 		}}
 		#treat.hist.fac<-apply(treat.hist,1,function(x) paste(x, collapse="+"))
 		cm.treat<-rowSums(treat.hist)
@@ -294,11 +295,12 @@ for(i in sort(unique(time))){
 	}
 ##Make matrix of time-varying glm starting vals
 cbps.coefs<-glm.coefs<-NULL
-n.time<-length(unique(time))
+unique.time<-sort(unique(time))
+n.time<-length(unique.time)
 for(i in 1:n.time){
-	glm1<-summary(glm(treat~X.svd, subset=(time==i)))$coefficients[,1]
+	glm1<-summary(glm(treat~X.svd, subset=(time==unique.time[i])))$coefficients[,1]
 	glm.cb<-glm1
-	glm.cb<-CBPS(treat[time==i]~X.svd[time==i,], ATT=0,method="exact")$coefficients
+	glm.cb<-CBPS(treat[time==unique.time[i]]~X.svd[time==unique.time[i],], ATT=0,method="exact")$coefficients
 	glm.coefs<-cbind(glm.coefs,glm1)
 	cbps.coefs<-cbind(cbps.coefs,glm.cb)
 	}
@@ -365,7 +367,8 @@ n.time<-length(unique(time))
 
 treat.hist<-matrix(NA,nrow=n.obs,ncol=n.time)
 name.cands<-sort(unique(id))
-for(i in 1:n.obs) for(j in 1:n.time) treat.hist[i,j]<-treat[id==name.cands[i] & time==j ]
+unique.time<-sort(unique(time))
+for(i in 1:n.obs) for(j in 1:n.time) treat.hist[i,j]<-treat[id==name.cands[i] & time==unique.time[j] ]
 
 treat.hist.unique<-unique(treat.hist,MAR=1)
 
@@ -388,7 +391,7 @@ for(i in 1:n.obs) {for(j in 1:n.obs) {
 ##Produce Weights
 ###########
 
-wts.out<-rep(uncond.probs.cand/msm.fit$pr,n.time)[time==1]
+wts.out<-rep(uncond.probs.cand/msm.fit$pr,n.time)[time==min(time)]
 probs.out<-msm.fit$pr
 uncond.probs<-uncond.probs.cand
 
@@ -401,7 +404,7 @@ if(loss.glm<loss.msm){
 
 # I know I'm putting probs.out in the weights and wts.out in the fitted values, but that
 # is what Marc said to do
-out<-list("weights"=probs.out,"fitted.values"=wts.out,"id"=id0[1:n.obs],"glm.g"=glm.fit$g.all,"msm.g"=msm.fit$g.all,"glm.weights"=(uncond.probs/glm.fit$pr)[time==1])
+out<-list("weights"=probs.out,"fitted.values"=wts.out,"id"=id0[1:n.obs],"glm.g"=glm.fit$g.all,"msm.g"=msm.fit$g.all,"glm.weights"=(uncond.probs/glm.fit$pr)[time==min(time)])
 class(out)<-c("CBMSM","list")
 return(out)
 }
@@ -560,7 +563,7 @@ balance.CBMSM<-function(object, ...)
   times<-sort(unique(object$time))
   for(i in 1:length(ids)) {
     for(j in 1:length(times)){
-      treat.hist[i,j]<-object$y[object$id== ids[i] & object$time==j]
+      treat.hist[i,j]<-object$y[object$id== ids[i] & object$time==times[j]]
     }
   }
   
