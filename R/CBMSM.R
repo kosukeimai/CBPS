@@ -579,7 +579,7 @@ balance.CBMSM<-function(object, ...)
       bal[j-1,i+length(unique(treat.hist.fac))]<-bal[j-1,i]/sd(object$w*object$x[which(object$time == times[1]),j])
       #bal[j-1,i+length(unique(treat.hist.fac))]<-bal[j-1,i]/sd(object$w*object$x[,j])
       baseline[j-1,i]<-sum((treat.hist.fac==unique(treat.hist.fac)[i])*object$x[which(object$time == times[1]),j]*object$glm.w)/sum(object$glm.w*(treat.hist.fac == unique(treat.hist.fac)[i]))
-      baseline[j-1,i+length(unique(treat.hist.fac))]<-bal[j-1,i]/sd(object$glm.w*object$x[which(object$time == times[1]),j])
+      baseline[j-1,i+length(unique(treat.hist.fac))]<-baseline[j-1,i]/sd(object$glm.w*object$x[which(object$time == times[1]),j])
       #baseline[j-1,i]<-sum((treat.hist.fac==unique(treat.hist.fac)[i])*object$x[,j]*object$glm.w)/sum(object$glm.w*(treat.hist.fac == unique(treat.hist.fac)[i]))
       #baseline[j-1,i+length(unique(treat.hist.fac))]<-bal[j-1,i]/sd(object$glm.w*object$x[,j])
     }
