@@ -178,12 +178,13 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
   ##Format treatment matrix
      	id<-as.numeric(as.factor(id))
 		unique.id<-sort(unique(id))
-		treat.hist<-matrix(NA,nrow=length(unique.id),ncol=length(unique(time)))
-		colnames(treat.hist)<-sort(unique(time))
+		unique.time<-sort(unique(time))
+		treat.hist<-matrix(NA,nrow=length(unique.id),ncol=length(unique.time))
+		colnames(treat.hist)<-unique.time
 		rownames(treat.hist)<-unique.id
-		for(i in 1:length(unique(unique.id))) for(j in sort(unique(time)))
+		for(i in 1:length(unique(unique.id))) for(j in seq_along(unique.time))
 		{{
-		treat.hist[i,j]<-Y[id==unique.id[i] & time==j]
+		treat.hist[i,j]<-Y[id==unique.id[i] & time==unique.time[j]]
 		}}
 		#treat.hist.fac<-apply(treat.hist,1,function(x) paste(x, collapse="+"))
 		cm.treat<-rowSums(treat.hist)
@@ -199,7 +200,9 @@ CBMSM<-function(formula, id, time, data, type="MSM", twostep = TRUE, msm.varianc
     names.X<-c("Intercept",colnames(X)[-1])
   }
 
-  fit <- eval(call("CBMSM.fit", treat = Y, X = X, id = id, time=time, 
+  ## CBMSM.fit and msm.loss.func index periods as 1..T, so pass the position
+  ## of each time value rather than the value itself (years, 0-based, gaps).
+  fit <- eval(call("CBMSM.fit", treat = Y, X = X, id = id, time=match(time, unique.time), 
                    MultiBin.fit = MultiBin.fit, twostep = twostep, msm.variance = msm.variance,
                    time.vary = time.vary, init = init))    
   
@@ -560,7 +563,7 @@ balance.CBMSM<-function(object, ...)
   times<-sort(unique(object$time))
   for(i in 1:length(ids)) {
     for(j in 1:length(times)){
-      treat.hist[i,j]<-object$y[object$id== ids[i] & object$time==j]
+      treat.hist[i,j]<-object$y[object$id== ids[i] & object$time==times[j]]
     }
   }
   
