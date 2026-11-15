@@ -215,7 +215,7 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   X <- if (!is.empty.model(mt)) model.matrix(mt, mf)#[,-2]
   else matrix(NA, NROW(Y), 0L)
   
-  X<-cbind(1,X[,apply(X,2,sd)>0])
+  X<-cbind(1,X[,apply(X,2,sd)>0,drop=FALSE])
   
   #Handle sample weights
   if(is.null(sample.weights)) sample.weights<-rep(1,nrow(X))
@@ -227,9 +227,9 @@ CBPS <- function(formula, data, na.action, ATT=1, iterations=1000, standardize=T
   if(!is.null(baseline.formula))
   {	
     baselineX<-model.matrix(terms(baseline.formula))
-    baselineX<-baselineX[,apply(baselineX,2,sd)>0]
+    baselineX<-baselineX[,apply(baselineX,2,sd)>0,drop=FALSE]
     diffX<- model.matrix(terms(diff.formula))
-    diffX<-diffX[,apply(as.matrix(diffX),2,sd)>0]
+    diffX<-diffX[,apply(as.matrix(diffX),2,sd)>0,drop=FALSE]
   }
   else
   {
