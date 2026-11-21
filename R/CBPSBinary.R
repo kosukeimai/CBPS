@@ -4,7 +4,8 @@ CBPS.2Treat<-function(treat, X, method, k, XprimeX.inv, bal.only, iterations, AT
   probs.min<- 1e-6
   
   treat.orig<-treat
-  treat<-sapply(treat,function(x) ifelse(x==levels(factor(treat))[2],1,0))
+  treat <- ifelse(treat == levels(factor(treat))[2L], 1, 0)
+  names(treat) <- names(treat.orig)
   if(ATT == 2)  treat<-1-treat
   
   if (ATT == 1){
