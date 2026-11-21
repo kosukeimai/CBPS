@@ -6,7 +6,8 @@ CBPSOptimal.2Treat<-function(treat, X, baselineX, diffX, iterations, ATT, standa
   X1=baselineX
   X1new=cbind(X[,1],X1)
   treat.orig<-treat
-  treat<-sapply(treat,function(x) ifelse(x==levels(factor(treat))[2],1,0))
+  treat <- ifelse(treat == levels(factor(treat))[2L], 1, 0)
+  names(treat) <- names(treat.orig)
   
   baselineX=as.matrix(baselineX)
   diffX=as.matrix(diffX)
